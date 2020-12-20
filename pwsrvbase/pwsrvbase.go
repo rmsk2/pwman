@@ -95,7 +95,6 @@ func (p *PwStore) handleRequest(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Printf("Only GET or POST is allowed on this resource %s", r.RequestURI)
 		http.Error(w, "Only GET or POST is allowed on this resource", http.StatusMethodNotAllowed)
-		return
 	}
 }
 
