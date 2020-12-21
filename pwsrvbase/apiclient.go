@@ -11,8 +11,14 @@ import (
 	"time"
 )
 
+// PwStorer is an interface for a remote password storage
+type PwStorer interface {
+	SetPassword(name string, password string) error
+	GetPassword(name string) (string, error)
+}
+
 // APIURL contains the base URL of the API
-const APIURL = "/api/pwserv/data/" // POST to set password fpr purpose, GET to get password
+const APIURL = "/api/pwserv/data/" // POST to set password for purpose, GET to get password
 
 // PwServPort contains the server port for the API
 const PwServPort = 5678

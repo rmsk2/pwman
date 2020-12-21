@@ -14,27 +14,35 @@ const enterPwText = "Please enter password: "
 
 type procFunc func(g *fcrypt.GjotsFile) error
 
-func getPassword(msg string) (string, error) {
-	client := pwsrvbase.NewPwAPIClient(pwsrvbase.PwServPort)
-
-	pw, err := client.GetPassword(pwName)
-	if (err == nil) && (pw != "") {
-		return pw, nil
-	}
-
+// GetSecurePassword reads a password from the console
+func GetSecurePassword(msg string) (string, error) {
 	print(msg) // print to stderr instead of stdout
 	password, err := terminal.ReadPassword(0)
 	if err != nil {
 		return "", err
 	}
 
-	println()
-
 	return string(password), nil
 }
 
-func decryptFile(inFile *string) ([]byte, string, error) {
-	password, err := getPassword(enterPwText)
+func getPassword(msg string, client pwsrvbase.PwStorer) (string, error) {
+	pw, err := client.GetPassword(pwName)
+	if (err == nil) && (pw != "") {
+		return pw, nil
+	}
+
+	password, err := GetSecurePassword(msg)
+	if err != nil {
+		return "", err
+	}
+
+	println()
+
+	return password, nil
+}
+
+func decryptFile(inFile *string, client pwsrvbase.PwStorer) ([]byte, string, error) {
+	password, err := getPassword(enterPwText, client)
 	if err != nil {
 		return nil, "", err
 	}
@@ -52,8 +60,8 @@ func decryptFile(inFile *string) ([]byte, string, error) {
 	return clearData, password, nil
 }
 
-func transact(proc procFunc, inFile *string, doWrite bool) error {
-	password, err := getPassword(enterPwText)
+func transact(proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
+	password, err := getPassword(enterPwText, client)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from file '%s': %v", *inFile, err)
 	}

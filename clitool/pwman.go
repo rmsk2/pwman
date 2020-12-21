@@ -10,8 +10,20 @@ import (
 	"pwman/pwsrvbase"
 )
 
+// CmdContext contains data which is common to all commands
+type CmdContext struct {
+	client pwsrvbase.PwStorer
+}
+
+// NewContext creates a new command context
+func NewContext() *CmdContext {
+	return &CmdContext{
+		client: pwsrvbase.NewPwAPIClient(pwsrvbase.PwServPort),
+	}
+}
+
 // EncryptCommand encrypts a file and writes the result to stdout
-func EncryptCommand(args []string) error {
+func (c *CmdContext) EncryptCommand(args []string) error {
 	encFlags := flag.NewFlagSet("pwman enc", flag.ContinueOnError)
 	inFile := encFlags.String("i", "", "File to encrypt")
 	outFile := encFlags.String("o", "", "Output file. Stdout if not specified")
@@ -25,12 +37,12 @@ func EncryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	password1, err := getPassword(enterPwText)
+	password1, err := GetSecurePassword(enterPwText)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
 	}
 
-	password2, err := getPassword("Please reenter password:")
+	password2, err := GetSecurePassword("Please reenter password:")
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
 	}
@@ -58,7 +70,7 @@ func EncryptCommand(args []string) error {
 }
 
 // DecryptCommand decrypts a file and writes the result to stdout
-func DecryptCommand(args []string) error {
+func (c *CmdContext) DecryptCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman dec", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
 	outFile := decFlags.String("o", "", "Output file. Stdout if not specified")
@@ -72,7 +84,7 @@ func DecryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	clearData, _, err := decryptFile(inFile)
+	clearData, _, err := decryptFile(inFile, c.client)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
 	}
@@ -87,7 +99,7 @@ func DecryptCommand(args []string) error {
 }
 
 // PwdCommand checks the password and prints it to stdout if correct
-func PwdCommand(args []string) error {
+func (c *CmdContext) PwdCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman pwd", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
 
@@ -100,14 +112,12 @@ func PwdCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	_, password, err := decryptFile(inFile)
+	_, password, err := decryptFile(inFile, c.client)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
 	}
 
-	client := pwsrvbase.NewPwAPIClient(pwsrvbase.PwServPort)
-
-	err = client.SetPassword(pwName, password)
+	err = c.client.SetPassword(pwName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to set password in pwserve: %v", err)
 	}
@@ -116,7 +126,7 @@ func PwdCommand(args []string) error {
 }
 
 // ListCommand decrypts a file and prints a list of all keys to stdout
-func ListCommand(args []string) error {
+func (c *CmdContext) ListCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman list", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
 
@@ -136,12 +146,12 @@ func ListCommand(args []string) error {
 
 			return nil
 
-		}, inFile, false,
+		}, inFile, false, c.client,
 	)
 }
 
 // GetCommand decrypts and searches in a file and writes the result to stdout
-func GetCommand(args []string) error {
+func (c *CmdContext) GetCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
 	key := decFlags.String("k", "", "Key to search")
@@ -170,12 +180,12 @@ func GetCommand(args []string) error {
 
 			return nil
 
-		}, inFile, false,
+		}, inFile, false, c.client,
 	)
 }
 
 // DeleteCommand deletes an entry from a file
-func DeleteCommand(args []string) error {
+func (c *CmdContext) DeleteCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman del", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
 	key := decFlags.String("k", "", "Key to delete")
@@ -196,12 +206,12 @@ func DeleteCommand(args []string) error {
 	return transact(
 		func(g *fcrypt.GjotsFile) error {
 			return g.DeleteEntry(*key)
-		}, inFile, true,
+		}, inFile, true, c.client,
 	)
 }
 
 // UpsertCommand adds/modifies an entry in a file
-func UpsertCommand(args []string) error {
+func (c *CmdContext) UpsertCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
 	inFile := putFlags.String("i", "", "File to decrypt")
 	key := putFlags.String("k", "", "Key of entry to modify")
@@ -239,20 +249,21 @@ func UpsertCommand(args []string) error {
 
 			return nil
 
-		}, inFile, true,
+		}, inFile, true, c.client,
 	)
 }
 
 func main() {
 	subcommParser := cliutil.NewSubcommandParser()
+	ctx := NewContext()
 
-	subcommParser.AddCommand("enc", EncryptCommand, "Encrypts a file")
-	subcommParser.AddCommand("dec", DecryptCommand, "Decrypts a file")
-	subcommParser.AddCommand("list", ListCommand, "Lists keys of entries in a file")
-	subcommParser.AddCommand("get", GetCommand, "Get an entry from a file")
-	subcommParser.AddCommand("put", UpsertCommand, "Adds/modifies an entry in a file")
-	subcommParser.AddCommand("del", DeleteCommand, "Deletes an entry from a file")
-	subcommParser.AddCommand("pwd", PwdCommand, "Checks the password and transfers it to pwserv")
+	subcommParser.AddCommand("enc", ctx.EncryptCommand, "Encrypts a file")
+	subcommParser.AddCommand("dec", ctx.DecryptCommand, "Decrypts a file")
+	subcommParser.AddCommand("list", ctx.ListCommand, "Lists keys of entries in a file")
+	subcommParser.AddCommand("get", ctx.GetCommand, "Get an entry from a file")
+	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry in a file")
+	subcommParser.AddCommand("del", ctx.DeleteCommand, "Deletes an entry from a file")
+	subcommParser.AddCommand("pwd", ctx.PwdCommand, "Checks the password and transfers it to pwserv")
 
 	subcommParser.Execute()
 }
