@@ -1,98 +1,14 @@
 package main
 
 import (
-	"bellonet/util"
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net"
-	"net/http"
 	"os"
 	"pwman/cliutil"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
-	"strconv"
-	"time"
 )
-
-const pwmanEnvVar = "PWMAN_PASSWORD"
-
-type pwAPIClient struct {
-	port uint16
-}
-
-// NewPwAPIClient returns an initialized pwAPIClient
-func newPwAPIClient(port uint16) *pwAPIClient {
-	return &pwAPIClient{
-		port: port,
-	}
-}
-
-func (p *pwAPIClient) makeURL(name string) string {
-	portStr := strconv.FormatUint(uint64(p.port), 10)
-	portSpec := net.JoinHostPort("localhost", portStr)
-	url := fmt.Sprintf("http://%s%s%s", portSpec, pwsrvbase.APIURL, name)
-
-	return url
-}
-
-func (p *pwAPIClient) SetPassword(name string, password string) error {
-	url := p.makeURL(name)
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(password)))
-	if err != nil {
-		return err
-	}
-
-	_, err = DoHTTPRequest(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (p *pwAPIClient) GetPassword(name string) (string, error) {
-	url := p.makeURL(name)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return "", err
-	}
-
-	data, err := util.DoHTTPRequest(req)
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
-}
-
-// DoHTTPRequest performs an HTTP request and returns the data returned by the server
-func DoHTTPRequest(req *http.Request) ([]byte, error) {
-	timeout := time.Duration(60 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if 200 != resp.StatusCode {
-		return nil, fmt.Errorf("%d: %s", resp.StatusCode, resp.Status)
-	}
-
-	return body, nil
-}
 
 // EncryptCommand encrypts a file and writes the result to stdout
 func EncryptCommand(args []string) error {
@@ -189,26 +105,12 @@ func PwdCommand(args []string) error {
 		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
 	}
 
-	client := newPwAPIClient(pwsrvbase.PwServPort)
+	client := pwsrvbase.NewPwAPIClient(pwsrvbase.PwServPort)
 
 	err = client.SetPassword(pwName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to set password in pwserve: %v", err)
 	}
-
-	return nil
-}
-
-// VarCommand prints the environment variable used by pwman
-func VarCommand(args []string) error {
-	decFlags := flag.NewFlagSet("pwman var", flag.ContinueOnError)
-
-	err := decFlags.Parse(args)
-	if err != nil {
-		os.Exit(42)
-	}
-
-	fmt.Println(pwmanEnvVar)
 
 	return nil
 }
@@ -350,7 +252,6 @@ func main() {
 	subcommParser.AddCommand("get", GetCommand, "Get an entry from a file")
 	subcommParser.AddCommand("put", UpsertCommand, "Adds/modifies an entry in a file")
 	subcommParser.AddCommand("del", DeleteCommand, "Deletes an entry from a file")
-	subcommParser.AddCommand("var", VarCommand, "Prints name of environment variable")
 	subcommParser.AddCommand("pwd", PwdCommand, "Checks the password and transfers it to pwserv")
 
 	subcommParser.Execute()

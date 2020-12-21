@@ -15,7 +15,7 @@ const enterPwText = "Please enter password: "
 type procFunc func(g *fcrypt.GjotsFile) error
 
 func getPassword(msg string) (string, error) {
-	client := newPwAPIClient(pwsrvbase.PwServPort)
+	client := pwsrvbase.NewPwAPIClient(pwsrvbase.PwServPort)
 
 	pw, err := client.GetPassword(pwName)
 	if (err == nil) && (pw != "") {

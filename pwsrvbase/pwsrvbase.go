@@ -9,12 +9,6 @@ import (
 	"strconv"
 )
 
-// APIURL contains the base URL of the API
-const APIURL = "/api/pwserv/data/" // POST to set password fpr purpose, GET to get password
-
-// PwServPort contains the server port for the API
-const PwServPort = 5678
-
 // CutPrefix removes the given prefix from the specified value. I prefer to add these 18 lines instead of
 // importing the full gorilla mux package.
 func CutPrefix(prefix, value string) (string, error) {
