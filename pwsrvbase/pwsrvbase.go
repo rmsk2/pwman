@@ -58,6 +58,21 @@ func (p *PwStore) handleGetPassword(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(password))
 }
 
+func (p *PwStore) handleResetPassword(w http.ResponseWriter, r *http.Request) {
+	name, err := CutPrefix(APIURL, r.URL.String())
+	if err != nil {
+		log.Printf("Unable to parse password name: %v", err)
+		http.Error(w, "Unable to parse password name", http.StatusBadRequest)
+		return
+	}
+
+	delete(p.passwords, name)
+
+	w.Header().Set("Cache-Control", "no-store")
+
+	log.Printf("Password for %s reset", name)
+}
+
 func (p *PwStore) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 	name, err := CutPrefix(APIURL, r.URL.String())
 	if err != nil {
@@ -86,9 +101,11 @@ func (p *PwStore) handleRequest(w http.ResponseWriter, r *http.Request) {
 		p.handleGetPassword(w, r)
 	case "POST":
 		p.handleSetPassword(w, r)
+	case "DELETE":
+		p.handleResetPassword(w, r)
 	default:
-		log.Printf("Only GET or POST is allowed on this resource %s", r.RequestURI)
-		http.Error(w, "Only GET or POST is allowed on this resource", http.StatusMethodNotAllowed)
+		log.Printf("Only GET, POST or DELETE is allowed on this resource %s", r.RequestURI)
+		http.Error(w, "Only GET, POST or DELETE is allowed on this resource", http.StatusMethodNotAllowed)
 	}
 }
 

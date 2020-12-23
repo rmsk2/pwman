@@ -15,6 +15,7 @@ import (
 type PwStorer interface {
 	SetPassword(name string, password string) error
 	GetPassword(name string) (string, error)
+	ResetPassword(name string) error
 }
 
 // APIURL contains the base URL of the API
@@ -75,6 +76,23 @@ func (p *PwAPIClient) GetPassword(name string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+// ResetPassword deletes the apssword form pwserv
+func (p *PwAPIClient) ResetPassword(name string) error {
+	url := p.makeURL(name)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = util.DoHTTPRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DoHTTPRequest performs an HTTP request and returns the data returned by the server

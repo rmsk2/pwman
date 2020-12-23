@@ -37,36 +37,57 @@ func (c *CmdContext) EncryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	password1, err := GetSecurePassword(enterPwText)
-	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
-	}
-
-	password2, err := GetSecurePassword("Please reenter password:")
-	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
-	}
-
-	if password1 != password2 {
-		return fmt.Errorf("Passwords not equal")
-	}
-
-	plainBytes, err := ioutil.ReadFile(*inFile)
-	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
-	}
-	if *outFile != "" {
-		return fcrypt.SaveEncData(plainBytes, password1, *outFile)
-	}
-
-	encBytes, err := fcrypt.EncryptBytes(&password1, plainBytes)
+	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
 	if err != nil {
 		return fmt.Errorf("Unable to encrypt file: %v", err)
 	}
 
-	fmt.Println(string(encBytes))
+	plainBytes, err := ioutil.ReadFile(*inFile)
+	if err != nil {
+		return fmt.Errorf("Unable to encrypt file: %v", err)
+	}
+
+	if *outFile != "" {
+		// Encrypt and write result to file
+		err = fcrypt.SaveEncData(plainBytes, password, *outFile)
+		if err != nil {
+			return fmt.Errorf("Unable to encrypt file: %v", err)
+		}
+	} else {
+		// Encrypt and write result to stdout
+		encBytes, err := fcrypt.EncryptBytes(&password, plainBytes)
+		if err != nil {
+			return fmt.Errorf("Unable to encrypt file: %v", err)
+		}
+
+		fmt.Println(string(encBytes))
+	}
 
 	return nil
+}
+
+// InitCommand creates an encrypted emtpy password safe
+func (c *CmdContext) InitCommand(args []string) error {
+	encFlags := flag.NewFlagSet("pwman init", flag.ContinueOnError)
+	outFile := encFlags.String("o", "", "Output file. Stdout if not specified")
+
+	err := encFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *outFile == "" {
+		return fmt.Errorf("No output file specified")
+	}
+
+	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize password safe: %v", err)
+	}
+
+	gjots := fcrypt.MakeGjotsEmpty()
+
+	return gjots.SerializeEncrypted(*outFile, password)
 }
 
 // DecryptCommand decrypts a file and writes the result to stdout
@@ -84,9 +105,19 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	clearData, _, err := decryptFile(inFile, c.client)
+	password, err := getPassword(enterPwText, c.client)
 	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
+		return fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	encBytes, err := ioutil.ReadFile(*inFile)
+	if err != nil {
+		return fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	clearData, err := fcrypt.DecryptBytes(&password, encBytes)
+	if err != nil {
+		return fmt.Errorf("Error decrypting file: %v", err)
 	}
 
 	if *outFile == "" {
@@ -98,7 +129,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 	return nil
 }
 
-// PwdCommand checks the password and prints it to stdout if correct
+// PwdCommand checks the password and hands it to a PwStorer if it is correct
 func (c *CmdContext) PwdCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman pwd", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File to decrypt")
@@ -112,14 +143,42 @@ func (c *CmdContext) PwdCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	_, password, err := decryptFile(inFile, c.client)
+	password, err := GetSecurePassword(enterPwText)
 	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from '%s': %v", *inFile, err)
+		return fmt.Errorf("Unable to verify password: %v", err)
+	}
+
+	// Verify password
+	_, err = fcrypt.MakeGjotsFromFile(*inFile, password)
+	if err != nil {
+		return fmt.Errorf("Unable to verify password: %v", err)
 	}
 
 	err = c.client.SetPassword(pwName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to set password in pwserve: %v", err)
+	}
+
+	return nil
+}
+
+// ResetCommand deletes the password from pwserv
+func (c *CmdContext) ResetCommand(args []string) error {
+	decFlags := flag.NewFlagSet("pwman rst", flag.ContinueOnError)
+	inFile := decFlags.String("i", "", "File holding password safe")
+
+	err := decFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *inFile == "" {
+		return fmt.Errorf("No file specified")
+	}
+
+	err = c.client.ResetPassword(pwName)
+	if err != nil {
+		return fmt.Errorf("Unable to reset password in pwserve: %v", err)
 	}
 
 	return nil
@@ -264,6 +323,8 @@ func main() {
 	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry in a file")
 	subcommParser.AddCommand("del", ctx.DeleteCommand, "Deletes an entry from a file")
 	subcommParser.AddCommand("pwd", ctx.PwdCommand, "Checks the password and transfers it to pwserv")
+	subcommParser.AddCommand("rst", ctx.ResetCommand, "Deletes the password from pwserv")
+	subcommParser.AddCommand("init", ctx.InitCommand, "Creates an empty password safe")
 
 	subcommParser.Execute()
 }

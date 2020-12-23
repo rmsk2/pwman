@@ -19,35 +19,16 @@ type GjotsFile struct {
 	EntryDict map[string]string
 }
 
-// SaveEncData saves the specified data in encrypted form
-func SaveEncData(data []byte, password string, fileName string) error {
-	encBytes, err := EncryptBytes(&password, data)
-	if err != nil {
-		return fmt.Errorf("Unable to encrypt file: %v", err)
+// MakeGjotsEmpty creates an empty GjotsFile data structure
+func MakeGjotsEmpty() *GjotsFile {
+	return &GjotsFile{
+		Entries:   []GjotsEntry{},
+		EntryDict: map[string]string{},
 	}
-
-	err = ioutil.WriteFile(fileName, encBytes, 0600)
-	if err != nil {
-		return fmt.Errorf("Unable to encrypt file: %v", err)
-	}
-
-	return nil
 }
 
-// SaveEncryptedFile serializes the saves the data
-func (g *GjotsFile) SaveEncryptedFile(fileName string, password string) error {
-	g.fromDict()
-
-	serialized, err := json.MarshalIndent(&g.Entries, "", "    ")
-	if err != nil {
-		return fmt.Errorf("Unable to serialize data: %v", err)
-	}
-
-	return SaveEncData(serialized, password, fileName)
-}
-
-// MakeFromEncryptedFile loads and decrypts a file
-func MakeFromEncryptedFile(inFile string, password string) (*GjotsFile, error) {
+// MakeGjotsFromFile loads and decrypts a file
+func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
 	encBytes, err := ioutil.ReadFile(inFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
@@ -72,6 +53,18 @@ func MakeFromEncryptedFile(inFile string, password string) (*GjotsFile, error) {
 	gjotsFile.toDict()
 
 	return gjotsFile, nil
+}
+
+// SerializeEncrypted serializes the saves the data
+func (g *GjotsFile) SerializeEncrypted(fileName string, password string) error {
+	g.fromDict()
+
+	serialized, err := json.MarshalIndent(&g.Entries, "", "    ")
+	if err != nil {
+		return fmt.Errorf("Unable to serialize data: %v", err)
+	}
+
+	return SaveEncData(serialized, password, fileName)
 }
 
 // PrintKeyList prints all keys in the file
