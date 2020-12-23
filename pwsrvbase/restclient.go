@@ -11,13 +11,6 @@ import (
 	"time"
 )
 
-// PwStorer is an interface for a remote password storage
-type PwStorer interface {
-	SetPassword(name string, password string) error
-	GetPassword(name string) (string, error)
-	ResetPassword(name string) error
-}
-
 // APIURL contains the base URL of the API
 const APIURL = "/api/pwserv/data/" // POST to set password for purpose, GET to get password
 
@@ -29,8 +22,8 @@ type PwAPIClient struct {
 	port uint16
 }
 
-// NewPwAPIClient returns an initialized pwAPIClient
-func NewPwAPIClient(port uint16) *PwAPIClient {
+// NewRESTClient returns an initialized pwAPIClient
+func NewRESTClient(port uint16) *PwAPIClient {
 	return &PwAPIClient{
 		port: port,
 	}
