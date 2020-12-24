@@ -18,7 +18,7 @@ type CmdContext struct {
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
-		client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor(pwsrvbase.PwUDS)),
+		client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
 	}
 }
 
@@ -147,6 +147,8 @@ func (c *CmdContext) PwdCommand(args []string) error {
 	if err != nil {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
+
+	println()
 
 	// Verify password
 	_, err = fcrypt.MakeGjotsFromFile(*inFile, password)
