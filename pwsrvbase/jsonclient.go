@@ -1,33 +1,18 @@
 package pwsrvbase
 
-import (
-	"net"
-	"strconv"
-)
+// TransActFunc encapsulates the knowledge of how to establish and tear down a connection
+type TransActFunc func(*PwRequest) (string, error)
 
 // GenericJSONClient holds the context for a generic JSON client
 type GenericJSONClient struct {
-	port uint16
+	transact TransActFunc
 }
 
 // NewGenericJSONClient returns an initalized GenerJSONClient struct
-func NewGenericJSONClient(port uint16) *GenericJSONClient {
+func NewGenericJSONClient(t TransActFunc) *GenericJSONClient {
 	return &GenericJSONClient{
-		port: port,
+		transact: t,
 	}
-}
-
-func (g *GenericJSONClient) transact(request *PwRequest) (string, error) {
-	portStr := strconv.FormatUint(uint64(g.port), 10)
-	portSpec := net.JoinHostPort("localhost", portStr)
-
-	conn, err := net.Dial("tcp", portSpec)
-	if err != nil {
-		return "", err
-	}
-	defer func() { conn.Close() }()
-
-	return ProcessPwRequestClient(conn, conn, request)
 }
 
 // SetPassword sets a password for a specified name
