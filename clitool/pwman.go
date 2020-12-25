@@ -18,6 +18,7 @@ type CmdContext struct {
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
+		//client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
 		client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
 	}
 }
@@ -126,7 +127,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		err = ioutil.WriteFile(*outFile, clearData, 0600)
 	}
 
-	return nil
+	return err
 }
 
 // PwdCommand checks the password and hands it to a PwStorer if it is correct
