@@ -1,18 +1,38 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
+	"io"
+	"path/filepath"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
+	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const pwName = "PWMAN"
 const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
 
 type procFunc func(g *fcrypt.GjotsFile) error
+
+// MakePasswordName derives a name for a password form the name of a encrypted container
+func MakePasswordName(fileName string) (string, error) {
+	fullName, err := filepath.Abs(fileName)
+	if err != nil {
+		return "", err
+	}
+
+	hash := md5.New()
+	_, err = io.Copy(hash, strings.NewReader(fullName))
+	if err != nil {
+		return "", err
+	}
+	sum := hash.Sum(nil)
+
+	return fmt.Sprintf("PWMAN:%x", sum), nil
+}
 
 // GetSecurePassword reads a password from the console
 func GetSecurePassword(msg string) (string, error) {
@@ -46,8 +66,13 @@ func GetSecurePasswordVerified(msg1, msg2 string) (string, error) {
 	return password1, nil
 }
 
-func getPassword(msg string, client pwsrvbase.PwStorer) (string, error) {
-	pw, err := client.GetPassword(pwName)
+func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string, error) {
+	fullName, err := MakePasswordName(fileName)
+	if err != nil {
+		return "", fmt.Errorf("Unable to get password: %v", err)
+	}
+
+	pw, err := client.GetPassword(fullName)
 	if (err == nil) && (pw != "") {
 		return pw, nil
 	}
@@ -61,7 +86,7 @@ func getPassword(msg string, client pwsrvbase.PwStorer) (string, error) {
 }
 
 func transact(proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
-	password, err := getPassword(enterPwText, client)
+	password, err := getPassword(enterPwText, client, *inFile)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from file '%s': %v", *inFile, err)
 	}

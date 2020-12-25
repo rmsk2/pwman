@@ -105,7 +105,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	password, err := getPassword(enterPwText, c.client)
+	password, err := getPassword(enterPwText, c.client, *inFile)
 	if err != nil {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
@@ -156,7 +156,12 @@ func (c *CmdContext) PwdCommand(args []string) error {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
 
-	err = c.client.SetPassword(pwName, password)
+	fullName, err := MakePasswordName(*inFile)
+	if err != nil {
+		return fmt.Errorf("Unable to set password: %v", err)
+	}
+
+	err = c.client.SetPassword(fullName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to set password in pwserve: %v", err)
 	}
@@ -178,7 +183,12 @@ func (c *CmdContext) ResetCommand(args []string) error {
 		return fmt.Errorf("No file specified")
 	}
 
-	err = c.client.ResetPassword(pwName)
+	fullName, err := MakePasswordName(*inFile)
+	if err != nil {
+		return fmt.Errorf("Unable to reset password: %v", err)
+	}
+
+	err = c.client.ResetPassword(fullName)
 	if err != nil {
 		return fmt.Errorf("Unable to reset password in pwserve: %v", err)
 	}
