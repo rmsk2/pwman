@@ -83,9 +83,9 @@ type PwStoreSocket struct {
 }
 
 // NewSocketPwStore returns a pointer to an initialized PwStoreSocket struct
-func NewSocketPwStore() *PwStoreSocket {
+func NewSocketPwStore(backend PwStorer) *PwStoreSocket {
 	return &PwStoreSocket{
-		backend: NewGenericStorer(),
+		backend: backend,
 	}
 }
 
