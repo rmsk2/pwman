@@ -57,6 +57,7 @@ func ReGenKey(password *string, salt []byte) (key []byte, err error) {
 
 // PwDataMetaInfo contains the meta information of an encrypted data structure
 type PwDataMetaInfo struct {
+	PbKdf string
 	Salt  []byte
 	Nonce []byte
 	Data  []byte
@@ -64,6 +65,7 @@ type PwDataMetaInfo struct {
 
 func makePWDataMetaInfo() *PwDataMetaInfo {
 	return &PwDataMetaInfo{
+		PbKdf: "sha256",
 		Salt:  []byte{},
 		Nonce: []byte{},
 		Data:  []byte{},
