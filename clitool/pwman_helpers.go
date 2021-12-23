@@ -9,7 +9,7 @@ import (
 	"pwman/pwsrvbase"
 	"strings"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const enterPwText = "Please enter password: "
@@ -37,7 +37,7 @@ func MakePasswordName(fileName string) (string, error) {
 // GetSecurePassword reads a password from the console
 func GetSecurePassword(msg string) (string, error) {
 	print(msg) // print to stderr instead of stdout
-	password, err := terminal.ReadPassword(0)
+	password, err := term.ReadPassword(0)
 	if err != nil {
 		return "", err
 	}

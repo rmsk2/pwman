@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"pwman/cliutil"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
 )
@@ -326,7 +325,7 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 }
 
 func main() {
-	subcommParser := cliutil.NewSubcommandParser()
+	subcommParser := NewSubcommandParser()
 	ctx := NewContext()
 
 	subcommParser.AddCommand("enc", ctx.EncryptCommand, "Encrypts a file")
