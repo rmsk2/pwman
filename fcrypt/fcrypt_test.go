@@ -8,12 +8,12 @@ import (
 func Test1(t *testing.T) {
 	password := ""
 
-	key, salt, err := GenKey(&password)
+	key, salt, err := GenKey(&password, SHA256KeyGen)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	key2, salt2, err := GenKey(&password)
+	key2, salt2, err := GenKey(&password, SHA256KeyGen)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,18 +31,22 @@ func Test2(t *testing.T) {
 	password := "schnuppsi"
 	data := ([]byte)("Dies ist ein toller Klartext")
 
-	enc, err := EncryptBytes(&password, data)
+	enc, err := EncryptBytes(&password, data, PbKdfSha256)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	plainAgain, err := DecryptBytes(&password, enc)
+	plainAgain, kdfId, err := DecryptBytes(&password, enc)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if kdfId != PbKdfSha256 {
+		t.Fatal("Wrong KDF")
 	}
 
 	if !bytes.Equal(data, plainAgain) {
-		t.Fatal("Palintexts different")
+		t.Fatal("Plaintexts different")
 	}
 }
 
@@ -50,14 +54,14 @@ func Test3(t *testing.T) {
 	password := "schnuppsi"
 	data := ([]byte)("Dies ist ein toller Klartext")
 
-	enc, err := EncryptBytes(&password, data)
+	enc, err := EncryptBytes(&password, data, PbKdfSha256)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	enc[len(enc)-1] = enc[len(enc)-1] ^ 1
 
-	_, err = DecryptBytes(&password, enc)
+	_, _, err = DecryptBytes(&password, enc)
 	if err == nil {
 		t.Fatal("Decryption should have failed")
 	}

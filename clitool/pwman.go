@@ -9,9 +9,12 @@ import (
 	"pwman/pwsrvbase"
 )
 
+const defaulPbKdf = fcrypt.PbKdfArgon2id
+
 // CmdContext contains data which is common to all commands
 type CmdContext struct {
-	client pwsrvbase.PwStorer
+	client  pwsrvbase.PwStorer
+	pbKdfId string
 }
 
 // NewContext creates a new command context
@@ -49,13 +52,13 @@ func (c *CmdContext) EncryptCommand(args []string) error {
 
 	if *outFile != "" {
 		// Encrypt and write result to file
-		err = fcrypt.SaveEncData(plainBytes, password, *outFile)
+		err = fcrypt.SaveEncData(plainBytes, password, *outFile, defaulPbKdf)
 		if err != nil {
 			return fmt.Errorf("Unable to encrypt file: %v", err)
 		}
 	} else {
 		// Encrypt and write result to stdout
-		encBytes, err := fcrypt.EncryptBytes(&password, plainBytes)
+		encBytes, err := fcrypt.EncryptBytes(&password, plainBytes, defaulPbKdf)
 		if err != nil {
 			return fmt.Errorf("Unable to encrypt file: %v", err)
 		}
@@ -85,7 +88,7 @@ func (c *CmdContext) InitCommand(args []string) error {
 		return fmt.Errorf("Unable to initialize password safe: %v", err)
 	}
 
-	gjots := fcrypt.MakeGjotsEmpty()
+	gjots := fcrypt.MakeGjotsEmpty(defaulPbKdf)
 
 	return gjots.SerializeEncrypted(*outFile, password)
 }
@@ -115,7 +118,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
 
-	clearData, err := fcrypt.DecryptBytes(&password, encBytes)
+	clearData, _, err := fcrypt.DecryptBytes(&password, encBytes)
 	if err != nil {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}

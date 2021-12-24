@@ -17,13 +17,15 @@ type GjotsEntry struct {
 type GjotsFile struct {
 	Entries   []GjotsEntry
 	EntryDict map[string]string
+	pbKdfId   string
 }
 
 // MakeGjotsEmpty creates an empty GjotsFile data structure
-func MakeGjotsEmpty() *GjotsFile {
+func MakeGjotsEmpty(kdfId string) *GjotsFile {
 	return &GjotsFile{
 		Entries:   []GjotsEntry{},
 		EntryDict: map[string]string{},
+		pbKdfId:   kdfId,
 	}
 }
 
@@ -34,7 +36,7 @@ func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	clearData, err := DecryptBytes(&password, encBytes)
+	clearData, kdfId, err := DecryptBytes(&password, encBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
@@ -48,6 +50,7 @@ func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
 
 	gjotsFile := &GjotsFile{
 		Entries: gjotsData,
+		pbKdfId: kdfId,
 	}
 
 	gjotsFile.toDict()
@@ -64,7 +67,7 @@ func (g *GjotsFile) SerializeEncrypted(fileName string, password string) error {
 		return fmt.Errorf("Unable to serialize data: %v", err)
 	}
 
-	return SaveEncData(serialized, password, fileName)
+	return SaveEncData(serialized, password, fileName, g.pbKdfId)
 }
 
 // PrintKeyList prints all keys in the file
