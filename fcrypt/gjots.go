@@ -114,6 +114,7 @@ func (g *GjotsFile) PrintEntry(key string) error {
 		return fmt.Errorf("Key '%s' not found", key)
 	}
 
+	fmt.Printf("----- %s -----\n", key)
 	fmt.Println(value)
 
 	return nil
