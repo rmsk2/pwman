@@ -42,6 +42,8 @@ func GetSecurePassword(msg string) (string, error) {
 		return "", err
 	}
 
+	println()
+
 	return string(password), nil
 }
 
@@ -95,8 +97,6 @@ func transact(proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwSt
 	if err != nil {
 		return fmt.Errorf("Decryption failed: %v", err)
 	}
-
-	println()
 
 	err = proc(gjotsData)
 	if err != nil {
