@@ -91,8 +91,6 @@ func transact(proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwSt
 		return fmt.Errorf("Unable to load encrypted data from file '%s': %v", *inFile, err)
 	}
 
-	println()
-
 	gjotsData, err := fcrypt.MakeGjotsFromFile(*inFile, password)
 	if err != nil {
 		return fmt.Errorf("Decryption failed: %v", err)

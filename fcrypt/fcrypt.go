@@ -8,7 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/scrypt"
@@ -177,7 +177,7 @@ func SaveEncData(data []byte, password string, fileName string, kdfId string) er
 		return fmt.Errorf("Unable to encrypt file: %v", err)
 	}
 
-	err = ioutil.WriteFile(fileName, encBytes, 0600)
+	err = os.WriteFile(fileName, encBytes, 0600)
 	if err != nil {
 		return fmt.Errorf("Unable to encrypt file: %v", err)
 	}

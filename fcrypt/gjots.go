@@ -3,7 +3,7 @@ package fcrypt
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 )
 
@@ -31,7 +31,7 @@ func MakeGjotsEmpty(kdfId string) *GjotsFile {
 
 // MakeGjotsFromFile loads and decrypts a file
 func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
-	encBytes, err := ioutil.ReadFile(inFile)
+	encBytes, err := os.ReadFile(inFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}

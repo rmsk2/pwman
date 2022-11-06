@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
@@ -13,8 +12,8 @@ const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 // CmdContext contains data which is common to all commands
 type CmdContext struct {
-	client  pwsrvbase.PwStorer
-	pbKdfId string
+	client pwsrvbase.PwStorer
+	//pbKdfId string
 }
 
 // NewContext creates a new command context
@@ -45,7 +44,7 @@ func (c *CmdContext) EncryptCommand(args []string) error {
 		return fmt.Errorf("Unable to encrypt file: %v", err)
 	}
 
-	plainBytes, err := ioutil.ReadFile(*inFile)
+	plainBytes, err := os.ReadFile(*inFile)
 	if err != nil {
 		return fmt.Errorf("Unable to encrypt file: %v", err)
 	}
@@ -113,7 +112,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
 
-	encBytes, err := ioutil.ReadFile(*inFile)
+	encBytes, err := os.ReadFile(*inFile)
 	if err != nil {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
@@ -126,7 +125,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 	if *outFile == "" {
 		fmt.Print(string(clearData))
 	} else {
-		err = ioutil.WriteFile(*outFile, clearData, 0600)
+		err = os.WriteFile(*outFile, clearData, 0600)
 	}
 
 	return err
@@ -215,7 +214,6 @@ func (c *CmdContext) ListCommand(args []string) error {
 
 	return transact(
 		func(g *fcrypt.GjotsFile) error {
-			fmt.Println()
 			g.PrintKeyList()
 
 			return nil
@@ -245,8 +243,6 @@ func (c *CmdContext) GetCommand(args []string) error {
 
 	return transact(
 		func(g *fcrypt.GjotsFile) error {
-			fmt.Println()
-
 			err = g.PrintEntry(*key)
 			if err != nil {
 				return err
@@ -308,7 +304,7 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 		return fmt.Errorf("No value file name specified")
 	}
 
-	rawValue, err := ioutil.ReadFile(*dataFile)
+	rawValue, err := os.ReadFile(*dataFile)
 	if err != nil {
 		return fmt.Errorf("Unable to load value data from '%s': %v", *dataFile, err)
 	}
