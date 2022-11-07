@@ -80,7 +80,7 @@ func (g *GjotsFile) PrintKeyList() {
 	sort.Strings(keys)
 
 	for _, j := range keys {
-		fmt.Println(j)
+		fmt.Printf("\"%s\"\n", j)
 	}
 }
 
