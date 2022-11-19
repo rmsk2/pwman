@@ -59,7 +59,7 @@ func makeGjotsFromFile(inFile string, password string) (Gjotser, error) {
 }
 
 // SerializeEncrypted serializes the saves the data
-func (g *gjotsFile) SerializeEncrypted(fileName string, password string) error {
+func (g *gjotsFile) Close(fileName string, password string) error {
 	g.fromDict()
 
 	serialized, err := json.MarshalIndent(&g.Entries, "", "    ")

@@ -104,7 +104,7 @@ func transact(manager fcrypt.GjotsManager, proc procFunc, inFile *string, doWrit
 	}
 
 	if doWrite {
-		return gjotsData.SerializeEncrypted(*inFile, password)
+		return gjotsData.Close(*inFile, password)
 	}
 
 	return nil

@@ -105,7 +105,7 @@ func (c *CmdContext) InitCommand(args []string) error {
 		return fmt.Errorf("Unable to initialize password safe: %v", err)
 	}
 
-	return gjots.SerializeEncrypted(*outFile, password)
+	return gjots.Close(*outFile, password)
 }
 
 // DecryptCommand decrypts a file and writes the result to stdout

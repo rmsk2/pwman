@@ -16,7 +16,7 @@ import (
 
 // Gjotser describes a thing that is in essence an encrypted key value store
 type Gjotser interface {
-	SerializeEncrypted(fileName string, password string) error
+	Close(fileName string, password string) error
 	PrintKeyList() error
 	PrintEntry(key string) error
 	GetKeyList() ([]string, error)
