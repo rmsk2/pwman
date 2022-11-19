@@ -7,18 +7,6 @@ import (
 	"sort"
 )
 
-// Gjotser describes a thing that is in essence a key value store
-type Gjotser interface {
-	SerializeEncrypted(fileName string, password string) error
-	PrintKeyList() error
-	PrintEntry(key string) error
-	GetKeyList() ([]string, error)
-	GetEntry(key string) (string, error)
-	DeleteEntry(key string) error
-	RenameEntry(key string, newKey string) error
-	UpsertEntry(key string, data string) (bool, error)
-}
-
 // gjotsEntry represents an entry in a gjots file
 type gjotsEntry struct {
 	Key  string
@@ -33,7 +21,7 @@ type gjotsFile struct {
 }
 
 // MakeGjotsEmpty creates an empty GjotsFile data structure
-func MakeGjotsEmpty(kdfId string) (Gjotser, error) {
+func makeGjotsEmpty(kdfId string) (Gjotser, error) {
 	return &gjotsFile{
 		Entries:   []gjotsEntry{},
 		EntryDict: map[string]string{},
@@ -42,7 +30,7 @@ func MakeGjotsEmpty(kdfId string) (Gjotser, error) {
 }
 
 // MakeGjotsFromFile loads and decrypts a file
-func MakeGjotsFromFile(inFile string, password string) (Gjotser, error) {
+func makeGjotsFromFile(inFile string, password string) (Gjotser, error) {
 	encBytes, err := os.ReadFile(inFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)

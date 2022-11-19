@@ -16,8 +16,6 @@ const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
 
 type procFunc func(g fcrypt.Gjotser) error
-type makeFunc func(inFile string, password string) (fcrypt.Gjotser, error)
-type initFunc func(pbkdfId string) (fcrypt.Gjotser, error)
 
 // MakePasswordName derives a name for a password form the name of a encrypted container
 func MakePasswordName(fileName string) (string, error) {
@@ -89,13 +87,13 @@ func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string
 	return password, nil
 }
 
-func transact(maker makeFunc, proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
+func transact(manager fcrypt.GjotsManager, proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
 	password, err := getPassword(enterPwText, client, *inFile)
 	if err != nil {
 		return fmt.Errorf("Unable to load encrypted data from location '%s': %v", *inFile, err)
 	}
 
-	gjotsData, err := maker(*inFile, password)
+	gjotsData, err := manager.Open(*inFile, password)
 	if err != nil {
 		return fmt.Errorf("Decryption failed: %v", err)
 	}

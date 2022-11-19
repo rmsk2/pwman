@@ -12,18 +12,16 @@ const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 // CmdContext contains data which is common to all commands
 type CmdContext struct {
-	client          pwsrvbase.PwStorer
-	jotsMaker       makeFunc
-	jotsInitializer initFunc
+	client      pwsrvbase.PwStorer
+	jotsManager fcrypt.GjotsManager
 }
 
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
 		//client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
-		client:          pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
-		jotsMaker:       fcrypt.MakeGjotsFromFile,
-		jotsInitializer: fcrypt.MakeGjotsEmpty,
+		client:      pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
+		jotsManager: fcrypt.GetGjotsManager(),
 	}
 }
 
@@ -102,7 +100,7 @@ func (c *CmdContext) InitCommand(args []string) error {
 		return fmt.Errorf("Unable to initialize password safe: %v", err)
 	}
 
-	gjots, err := c.jotsInitializer(*pbkfId)
+	gjots, err := c.jotsManager.Init(*pbkfId)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize password safe: %v", err)
 	}
@@ -171,7 +169,7 @@ func (c *CmdContext) PwdCommand(args []string) error {
 	println()
 
 	// Verify password
-	_, err = fcrypt.MakeGjotsFromFile(*inFile, password)
+	_, err = c.jotsManager.Open(*inFile, password)
 	if err != nil {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
@@ -230,7 +228,7 @@ func (c *CmdContext) ListCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	return transact(c.jotsMaker,
+	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			g.PrintKeyList()
 
@@ -259,7 +257,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 		return fmt.Errorf("No key specified")
 	}
 
-	return transact(c.jotsMaker,
+	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			err = g.PrintEntry(*key)
 			if err != nil {
@@ -291,7 +289,7 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 		return fmt.Errorf("No key specified")
 	}
 
-	return transact(c.jotsMaker,
+	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			return g.DeleteEntry(*key)
 		}, inFile, true, c.client,
@@ -322,7 +320,7 @@ func (c *CmdContext) RenameCommand(args []string) error {
 		return fmt.Errorf("No new key specified")
 	}
 
-	return transact(c.jotsMaker,
+	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			return g.RenameEntry(*key, *newKey)
 
@@ -359,7 +357,7 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 		return fmt.Errorf("Unable to load value data from '%s': %v", *dataFile, err)
 	}
 
-	return transact(c.jotsMaker,
+	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			entryReplaced, err := g.UpsertEntry(*key, string(rawValue))
 			if err != nil {

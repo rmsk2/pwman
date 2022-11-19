@@ -14,6 +14,38 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+// Gjotser describes a thing that is in essence an encrypted key value store
+type Gjotser interface {
+	SerializeEncrypted(fileName string, password string) error
+	PrintKeyList() error
+	PrintEntry(key string) error
+	GetKeyList() ([]string, error)
+	GetEntry(key string) (string, error)
+	DeleteEntry(key string) error
+	RenameEntry(key string, newKey string) error
+	UpsertEntry(key string, data string) (bool, error)
+}
+
+type GjotsManager interface {
+	Open(inFile string, password string) (Gjotser, error)
+	Init(pbkdfId string) (Gjotser, error)
+}
+
+type jotsManager struct {
+}
+
+func (j *jotsManager) Open(inFile string, password string) (Gjotser, error) {
+	return makeGjotsFromFile(inFile, password)
+}
+
+func (j *jotsManager) Init(pbkdfId string) (Gjotser, error) {
+	return makeGjotsEmpty(pbkdfId)
+}
+
+func GetGjotsManager() GjotsManager {
+	return &jotsManager{}
+}
+
 // KeyDeriveFunc is function that knows how to create an AES-256 key from a salt and a password
 type KeyDeriveFunc func(password *string, salt []byte) (key []byte, err error)
 
