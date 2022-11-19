@@ -280,6 +280,7 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 	)
 }
 
+// RenameCommand allows to rename an existing entry
 func (c *CmdContext) RenameCommand(args []string) error {
 	renFlags := flag.NewFlagSet("pwman ren", flag.ContinueOnError)
 	inFile := renFlags.String("i", "", "File holding password safe")
