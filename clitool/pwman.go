@@ -330,7 +330,7 @@ func (c *CmdContext) RenameCommand(args []string) error {
 
 // UpsertCommand adds/modifies an entry in a file
 func (c *CmdContext) UpsertCommand(args []string) error {
-	putFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
+	putFlags := flag.NewFlagSet("pwman put", flag.ContinueOnError)
 	inFile := putFlags.String("i", "", "File holding password safe")
 	key := putFlags.String("k", "", "Key of entry to modify")
 	dataFile := putFlags.String("v", "", "File containing value to associate with path/name")

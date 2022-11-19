@@ -8,6 +8,7 @@ import (
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
 	"strings"
+	"syscall"
 
 	"golang.org/x/term"
 )
@@ -37,7 +38,7 @@ func MakePasswordName(fileName string) (string, error) {
 // GetSecurePassword reads a password from the console
 func GetSecurePassword(msg string) (string, error) {
 	print(msg) // print to stderr instead of stdout
-	password, err := term.ReadPassword(0)
+	password, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err
 	}
