@@ -15,7 +15,9 @@ import (
 const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
 
-type procFunc func(g *fcrypt.GjotsFile) error
+type procFunc func(g fcrypt.Gjotser) error
+type makeFunc func(inFile string, password string) (fcrypt.Gjotser, error)
+type initFunc func(pbkdfId string) (fcrypt.Gjotser, error)
 
 // MakePasswordName derives a name for a password form the name of a encrypted container
 func MakePasswordName(fileName string) (string, error) {
@@ -87,20 +89,20 @@ func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string
 	return password, nil
 }
 
-func transact(proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
+func transact(maker makeFunc, proc procFunc, inFile *string, doWrite bool, client pwsrvbase.PwStorer) error {
 	password, err := getPassword(enterPwText, client, *inFile)
 	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from file '%s': %v", *inFile, err)
+		return fmt.Errorf("Unable to load encrypted data from location '%s': %v", *inFile, err)
 	}
 
-	gjotsData, err := fcrypt.MakeGjotsFromFile(*inFile, password)
+	gjotsData, err := maker(*inFile, password)
 	if err != nil {
 		return fmt.Errorf("Decryption failed: %v", err)
 	}
 
 	err = proc(gjotsData)
 	if err != nil {
-		return fmt.Errorf("Unable to load encrypted data from file '%s': %v", *inFile, err)
+		return fmt.Errorf("Unable to load encrypted data from location '%s': %v", *inFile, err)
 	}
 
 	if doWrite {

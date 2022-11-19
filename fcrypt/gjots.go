@@ -7,30 +7,42 @@ import (
 	"sort"
 )
 
-// GjotsEntry represents an entry in a gjots file
-type GjotsEntry struct {
+// Gjotser describes a thing that is in essence a key value store
+type Gjotser interface {
+	SerializeEncrypted(fileName string, password string) error
+	PrintKeyList() error
+	PrintEntry(key string) error
+	GetKeyList() ([]string, error)
+	GetEntry(key string) (string, error)
+	DeleteEntry(key string) error
+	RenameEntry(key string, newKey string) error
+	UpsertEntry(key string, data string) (bool, error)
+}
+
+// gjotsEntry represents an entry in a gjots file
+type gjotsEntry struct {
 	Key  string
 	Text string
 }
 
-// GjotsFile represents the contents of a gjots file
-type GjotsFile struct {
-	Entries   []GjotsEntry
+// gjotsFile represents the contents of a gjots file
+type gjotsFile struct {
+	Entries   []gjotsEntry
 	EntryDict map[string]string
 	pbKdfId   string
 }
 
 // MakeGjotsEmpty creates an empty GjotsFile data structure
-func MakeGjotsEmpty(kdfId string) *GjotsFile {
-	return &GjotsFile{
-		Entries:   []GjotsEntry{},
+func MakeGjotsEmpty(kdfId string) (Gjotser, error) {
+	return &gjotsFile{
+		Entries:   []gjotsEntry{},
 		EntryDict: map[string]string{},
 		pbKdfId:   kdfId,
-	}
+	}, nil
 }
 
 // MakeGjotsFromFile loads and decrypts a file
-func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
+func MakeGjotsFromFile(inFile string, password string) (Gjotser, error) {
 	encBytes, err := os.ReadFile(inFile)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
@@ -41,14 +53,14 @@ func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjotsData := []GjotsEntry{}
+	gjotsData := []gjotsEntry{}
 
 	err = json.Unmarshal(clearData, &gjotsData)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjotsFile := &GjotsFile{
+	gjotsFile := &gjotsFile{
 		Entries: gjotsData,
 		pbKdfId: kdfId,
 	}
@@ -59,7 +71,7 @@ func MakeGjotsFromFile(inFile string, password string) (*GjotsFile, error) {
 }
 
 // SerializeEncrypted serializes the saves the data
-func (g *GjotsFile) SerializeEncrypted(fileName string, password string) error {
+func (g *gjotsFile) SerializeEncrypted(fileName string, password string) error {
 	g.fromDict()
 
 	serialized, err := json.MarshalIndent(&g.Entries, "", "    ")
@@ -70,7 +82,7 @@ func (g *GjotsFile) SerializeEncrypted(fileName string, password string) error {
 	return SaveEncData(serialized, password, fileName, g.pbKdfId)
 }
 
-func (g *GjotsFile) toDict() {
+func (g *gjotsFile) toDict() {
 	res := map[string]string{}
 
 	for _, j := range g.Entries {
@@ -80,11 +92,11 @@ func (g *GjotsFile) toDict() {
 	g.EntryDict = res
 }
 
-func (g *GjotsFile) fromDict() {
-	g.Entries = []GjotsEntry{}
+func (g *gjotsFile) fromDict() {
+	g.Entries = []gjotsEntry{}
 
 	for i, j := range g.EntryDict {
-		newEntry := GjotsEntry{
+		newEntry := gjotsEntry{
 			Key:  i,
 			Text: j,
 		}
@@ -94,16 +106,18 @@ func (g *GjotsFile) fromDict() {
 }
 
 // PrintKeyList prints all keys in the file
-func (g *GjotsFile) PrintKeyList() {
-	keys := g.GetKeyList()
+func (g *gjotsFile) PrintKeyList() error {
+	keys, _ := g.GetKeyList()
 
 	for _, j := range keys {
 		fmt.Printf("\"%s\"\n", j)
 	}
+
+	return nil
 }
 
 // PrintEntry searches for an entry and if found prints it
-func (g *GjotsFile) PrintEntry(key string) error {
+func (g *gjotsFile) PrintEntry(key string) error {
 	value, err := g.GetEntry(key)
 	if err != nil {
 		return err
@@ -116,7 +130,7 @@ func (g *GjotsFile) PrintEntry(key string) error {
 }
 
 // GetKeyList returns the list of the keys contained in the password file
-func (g *GjotsFile) GetKeyList() []string {
+func (g *gjotsFile) GetKeyList() ([]string, error) {
 	keys := make([]string, 0, len(g.EntryDict))
 	for i := range g.EntryDict {
 		keys = append(keys, i)
@@ -124,11 +138,11 @@ func (g *GjotsFile) GetKeyList() []string {
 
 	sort.Strings(keys)
 
-	return keys
+	return keys, nil
 }
 
 // GetEntry returns the data identified by key
-func (g *GjotsFile) GetEntry(key string) (string, error) {
+func (g *gjotsFile) GetEntry(key string) (string, error) {
 	value, ok := g.EntryDict[key]
 	if !ok {
 		return "", fmt.Errorf("Key '%s' not found", key)
@@ -138,7 +152,7 @@ func (g *GjotsFile) GetEntry(key string) (string, error) {
 }
 
 // DeleteEntry deletes an entry from the file
-func (g *GjotsFile) DeleteEntry(key string) error {
+func (g *gjotsFile) DeleteEntry(key string) error {
 	_, ok := g.EntryDict[key]
 	if !ok {
 		return fmt.Errorf("Key '%s' not found", key)
@@ -150,7 +164,7 @@ func (g *GjotsFile) DeleteEntry(key string) error {
 }
 
 // RenameEntry renames an entry
-func (g *GjotsFile) RenameEntry(key string, newKey string) error {
+func (g *gjotsFile) RenameEntry(key string, newKey string) error {
 	entry, err := g.GetEntry(key)
 	if err != nil {
 		return fmt.Errorf("Unable to rename entry: %v", err)
@@ -166,16 +180,16 @@ func (g *GjotsFile) RenameEntry(key string, newKey string) error {
 		return fmt.Errorf("Unable to rename entry: %v", err)
 	}
 
-	_ = g.UpsertEntry(newKey, entry)
+	_, _ = g.UpsertEntry(newKey, entry)
 
 	return nil
 }
 
 // UpsertEntry adds/modifies an entry from the file. The return value is true if an existing value was updated
 // it is false otherwise.
-func (g *GjotsFile) UpsertEntry(key string, data string) bool {
+func (g *gjotsFile) UpsertEntry(key string, data string) (bool, error) {
 	_, ok := g.EntryDict[key]
 	g.EntryDict[key] = data
 
-	return ok
+	return ok, nil
 }
