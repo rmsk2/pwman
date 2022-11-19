@@ -149,6 +149,7 @@ func (g *GjotsFile) DeleteEntry(key string) error {
 	return nil
 }
 
+// RenameEntry renames an entry
 func (g *GjotsFile) RenameEntry(key string, newKey string) error {
 	entry, err := g.GetEntry(key)
 	if err != nil {
