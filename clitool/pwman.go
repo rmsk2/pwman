@@ -134,7 +134,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 // PwdCommand checks the password and hands it to a PwStorer if it is correct
 func (c *CmdContext) PwdCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman pwd", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File to decrypt")
+	inFile := decFlags.String("i", "", "File holding password safe")
 
 	err := decFlags.Parse(args)
 	if err != nil {
@@ -201,7 +201,7 @@ func (c *CmdContext) ResetCommand(args []string) error {
 // ListCommand decrypts a file and prints a list of all keys to stdout
 func (c *CmdContext) ListCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman list", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File to decrypt")
+	inFile := decFlags.String("i", "", "File holding password safe")
 
 	err := decFlags.Parse(args)
 	if err != nil {
@@ -225,7 +225,7 @@ func (c *CmdContext) ListCommand(args []string) error {
 // GetCommand decrypts and searches in a file and writes the result to stdout
 func (c *CmdContext) GetCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File to decrypt")
+	inFile := decFlags.String("i", "", "File holding password safe")
 	key := decFlags.String("k", "", "Key to search")
 
 	err := decFlags.Parse(args)
@@ -257,7 +257,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 // DeleteCommand deletes an entry from a file
 func (c *CmdContext) DeleteCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman del", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File to decrypt")
+	inFile := decFlags.String("i", "", "File holding password safe")
 	key := decFlags.String("k", "", "Key to delete")
 
 	err := decFlags.Parse(args)
@@ -282,7 +282,7 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 
 func (c *CmdContext) RenameCommand(args []string) error {
 	renFlags := flag.NewFlagSet("pwman ren", flag.ContinueOnError)
-	inFile := renFlags.String("i", "", "File to decrypt")
+	inFile := renFlags.String("i", "", "File holding password safe")
 	key := renFlags.String("k", "", "Key of entry to rename")
 	newKey := renFlags.String("n", "", "New key to use for entry")
 
@@ -314,7 +314,7 @@ func (c *CmdContext) RenameCommand(args []string) error {
 // UpsertCommand adds/modifies an entry in a file
 func (c *CmdContext) UpsertCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
-	inFile := putFlags.String("i", "", "File to decrypt")
+	inFile := putFlags.String("i", "", "File holding password safe")
 	key := putFlags.String("k", "", "Key of entry to modify")
 	dataFile := putFlags.String("v", "", "File containing value to associate with path/name")
 
