@@ -70,20 +70,6 @@ func (g *GjotsFile) SerializeEncrypted(fileName string, password string) error {
 	return SaveEncData(serialized, password, fileName, g.pbKdfId)
 }
 
-// PrintKeyList prints all keys in the file
-func (g *GjotsFile) PrintKeyList() {
-	keys := make([]string, 0, len(g.EntryDict))
-	for i := range g.EntryDict {
-		keys = append(keys, i)
-	}
-
-	sort.Strings(keys)
-
-	for _, j := range keys {
-		fmt.Printf("\"%s\"\n", j)
-	}
-}
-
 func (g *GjotsFile) toDict() {
 	res := map[string]string{}
 
@@ -107,17 +93,46 @@ func (g *GjotsFile) fromDict() {
 	}
 }
 
+// PrintKeyList prints all keys in the file
+func (g *GjotsFile) PrintKeyList() {
+	keys := g.GetKeyList()
+
+	for _, j := range keys {
+		fmt.Printf("\"%s\"\n", j)
+	}
+}
+
 // PrintEntry searches for an entry and if found prints it
 func (g *GjotsFile) PrintEntry(key string) error {
-	value, ok := g.EntryDict[key]
-	if !ok {
-		return fmt.Errorf("Key '%s' not found", key)
+	value, err := g.GetEntry(key)
+	if err != nil {
+		return err
 	}
 
 	fmt.Printf("----- %s -----\n", key)
 	fmt.Println(value)
 
 	return nil
+}
+
+func (g *GjotsFile) GetKeyList() []string {
+	keys := make([]string, 0, len(g.EntryDict))
+	for i := range g.EntryDict {
+		keys = append(keys, i)
+	}
+
+	sort.Strings(keys)
+
+	return keys
+}
+
+func (g *GjotsFile) GetEntry(key string) (string, error) {
+	value, ok := g.EntryDict[key]
+	if !ok {
+		return "", fmt.Errorf("Key '%s' not found", key)
+	}
+
+	return value, nil
 }
 
 // DeleteEntry deletes an entry from the file
@@ -132,7 +147,29 @@ func (g *GjotsFile) DeleteEntry(key string) error {
 	return nil
 }
 
-// UpsertEntry adds/modifies an entry from the file
+func (g *GjotsFile) RenameEntry(key string, newKey string) error {
+	entry, err := g.GetEntry(key)
+	if err != nil {
+		return fmt.Errorf("Unable to rename entry: %v", err)
+	}
+
+	_, ok := g.EntryDict[newKey]
+	if ok {
+		return fmt.Errorf("Key '%s' already exists", newKey)
+	}
+
+	err = g.DeleteEntry(key)
+	if err != nil {
+		return fmt.Errorf("Unable to rename entry: %v", err)
+	}
+
+	_ = g.UpsertEntry(newKey, entry)
+
+	return nil
+}
+
+// UpsertEntry adds/modifies an entry from the file. The return value is true if an existing value was updated
+// it is false otherwise.
 func (g *GjotsFile) UpsertEntry(key string, data string) bool {
 	_, ok := g.EntryDict[key]
 	g.EntryDict[key] = data

@@ -280,6 +280,37 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 	)
 }
 
+func (c *CmdContext) RenameCommand(args []string) error {
+	renFlags := flag.NewFlagSet("pwman ren", flag.ContinueOnError)
+	inFile := renFlags.String("i", "", "File to decrypt")
+	key := renFlags.String("k", "", "Key of entry to rename")
+	newKey := renFlags.String("n", "", "New key to use for entry")
+
+	err := renFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *inFile == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	if *key == "" {
+		return fmt.Errorf("No key specified")
+	}
+
+	if *newKey == "" {
+		return fmt.Errorf("No new key specified")
+	}
+
+	return transact(
+		func(g *fcrypt.GjotsFile) error {
+			return g.RenameEntry(*key, *newKey)
+
+		}, inFile, true, c.client,
+	)
+}
+
 // UpsertCommand adds/modifies an entry in a file
 func (c *CmdContext) UpsertCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
@@ -332,6 +363,7 @@ func main() {
 	subcommParser.AddCommand("list", ctx.ListCommand, "Lists keys of entries in a file")
 	subcommParser.AddCommand("get", ctx.GetCommand, "Get an entry from a file")
 	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry in a file")
+	subcommParser.AddCommand("ren", ctx.RenameCommand, "Renames an entry in a file")
 	subcommParser.AddCommand("del", ctx.DeleteCommand, "Deletes an entry from a file")
 	subcommParser.AddCommand("pwd", ctx.PwdCommand, "Checks the password and transfers it to pwserv")
 	subcommParser.AddCommand("rst", ctx.ResetCommand, "Deletes the password from pwserv")
