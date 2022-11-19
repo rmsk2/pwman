@@ -115,6 +115,7 @@ func (g *GjotsFile) PrintEntry(key string) error {
 	return nil
 }
 
+// GetKeyList returns the list of the keys contained in the password file
 func (g *GjotsFile) GetKeyList() []string {
 	keys := make([]string, 0, len(g.EntryDict))
 	for i := range g.EntryDict {
@@ -126,6 +127,7 @@ func (g *GjotsFile) GetKeyList() []string {
 	return keys
 }
 
+// GetEntry returns the data identified by key
 func (g *GjotsFile) GetEntry(key string) (string, error) {
 	value, ok := g.EntryDict[key]
 	if !ok {
