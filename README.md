@@ -41,7 +41,9 @@ Interestingly enough Windows implements UNIX domain sockets since around 2017/20
 `windomainsock.go`. UNIX domain sockets not only allow additional access control but on Windows they are also noticebly faster than 
 TCP over the loopback device.
 
-I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remeber to start it before using `clitool`.
+I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remeber to start it before using `clitool`. Another way
+to simplify calls to `clitool` is to set the environment variable `PWMANFILE` to the file system location of the password safe file. If this
+variable is set and `-i` is not specified then `clitool` uses the value from the environment. If `-i` is present this value takes precedence.
 
 # Building
 

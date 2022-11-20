@@ -158,7 +158,9 @@ func (c *CmdContext) PwdCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -170,12 +172,12 @@ func (c *CmdContext) PwdCommand(args []string) error {
 	println()
 
 	// Verify password
-	_, err = c.jotsManager.Open(*inFile, password)
+	_, err = c.jotsManager.Open(safeName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
 
-	fullName, err := MakePasswordName(*inFile)
+	fullName, err := MakePasswordName(safeName)
 	if err != nil {
 		return fmt.Errorf("Unable to set password: %v", err)
 	}
@@ -198,11 +200,13 @@ func (c *CmdContext) ResetCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No file specified")
 	}
 
-	fullName, err := MakePasswordName(*inFile)
+	fullName, err := MakePasswordName(safeName)
 	if err != nil {
 		return fmt.Errorf("Unable to reset password: %v", err)
 	}
@@ -225,7 +229,9 @@ func (c *CmdContext) ListCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -235,7 +241,7 @@ func (c *CmdContext) ListCommand(args []string) error {
 
 			return nil
 
-		}, inFile, false, c.client,
+		}, &safeName, false, c.client,
 	)
 }
 
@@ -250,7 +256,9 @@ func (c *CmdContext) GetCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -267,7 +275,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 
 			return nil
 
-		}, inFile, false, c.client,
+		}, &safeName, false, c.client,
 	)
 }
 
@@ -282,7 +290,9 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -293,7 +303,7 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 	return transact(c.jotsManager,
 		func(g fcrypt.Gjotser) error {
 			return g.DeleteEntry(*key)
-		}, inFile, true, c.client,
+		}, &safeName, true, c.client,
 	)
 }
 
@@ -309,7 +319,9 @@ func (c *CmdContext) RenameCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -325,7 +337,7 @@ func (c *CmdContext) RenameCommand(args []string) error {
 		func(g fcrypt.Gjotser) error {
 			return g.RenameEntry(*key, *newKey)
 
-		}, inFile, true, c.client,
+		}, &safeName, true, c.client,
 	)
 }
 
@@ -341,7 +353,9 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *inFile == "" {
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
 		return fmt.Errorf("No input file specified")
 	}
 
@@ -373,7 +387,7 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 
 			return nil
 
-		}, inFile, true, c.client,
+		}, &safeName, true, c.client,
 	)
 }
 

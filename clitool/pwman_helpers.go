@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
@@ -15,6 +16,7 @@ import (
 
 const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
+const pwmanFile = "PWMANFILE"
 
 type procFunc func(g fcrypt.Gjotser) error
 
@@ -67,6 +69,14 @@ func GetSecurePasswordVerified(msg1, msg2 string) (string, error) {
 	}
 
 	return password1, nil
+}
+
+func getPwSafeFileName(cmdLineParam *string) string {
+	if *cmdLineParam != "" {
+		return *cmdLineParam
+	}
+
+	return os.Getenv(pwmanFile)
 }
 
 func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string, error) {
