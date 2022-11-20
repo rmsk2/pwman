@@ -6,6 +6,7 @@ import (
 	"os"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
+	"pwman/pwsrvbase/domainsock"
 )
 
 const defaulPbKdf = fcrypt.PbKdfArgon2id
@@ -19,8 +20,8 @@ type CmdContext struct {
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
-		client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
-		//client:      pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
+		//client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
+		client:      pwsrvbase.NewGenericJSONClient(domainsock.NewUDSTransactor()),
 		jotsManager: fcrypt.GetGjotsManager(),
 	}
 }

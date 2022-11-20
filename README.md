@@ -35,8 +35,8 @@ obviously have to start `pwserv` before `clitool` can access it. In the default 
 named `"/tmp/${username}.pwman"` which can only by accessed by the user who started `pwserv`. `pwserv` can also alternatively use the loopback
 device (or any other TCP socket) but without the additional access restrictions afforded by a UNIX domain socket. This is the only way to run 
 `pwserv` on windows as Unix domain sockets are obviously not available on Windows. Maybe someday I will implement a named pipe interface which 
-can be used under Windows instead of UNIX domain sockets. In order to switch to the loopback device change the call to `Serve()` 
-in `pwserv.go` accordingly.
+can be used under Windows instead of UNIX domain sockets. In order to switch to the loopback device change the calls to `Serve()` 
+in `pwserv.go` and `NewContext()` in `pwman.go` accordingly.
 
 I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remeber to start it before using `clitool`.
 
