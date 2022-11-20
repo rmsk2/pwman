@@ -1,21 +1,16 @@
 package pwsrvbase
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-	"os/user"
 	"strconv"
 	"syscall"
 )
 
 // PwServPort holds the default port for the socket server
 const PwServPort = 4567
-
-// PwUDS contains the default UDS file name pattern for pwserv
-const PwUDS = "/tmp/%s.pwman"
 
 // ParamPrepareFunc are functions that know how determine parameters for the Listen function
 type ParamPrepareFunc func() (string, string, error)
@@ -34,16 +29,6 @@ func doStop(c chan bool) bool {
 	return result
 }
 
-// MakeUDSAddress returns the UDS address to use for the current user
-func MakeUDSAddress() string {
-	user, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-
-	return fmt.Sprintf(PwUDS, user.Name)
-}
-
 // NewTCPPrepareFunc returns a function that determines the connection parameters for
 // a TCP connection to localhost
 func NewTCPPrepareFunc(port uint16) ParamPrepareFunc {
@@ -52,26 +37,6 @@ func NewTCPPrepareFunc(port uint16) ParamPrepareFunc {
 		portSpec := net.JoinHostPort("localhost", portStr)
 
 		return "tcp", portSpec, nil
-	}
-
-	return f
-}
-
-// NewUDSPrepareFunc returns a function that determines the connection parameters for
-// a connection via UNIX Domain sockets
-func NewUDSPrepareFunc() ParamPrepareFunc {
-	f := func() (string, string, error) {
-		fileName := MakeUDSAddress()
-		err := os.RemoveAll(fileName)
-		if err != nil {
-			return "", "", err
-		}
-
-		// Only user may access newly generated files including the file
-		// representing the UNIX Domain socket
-		syscall.Umask(0077)
-
-		return "unix", fileName, nil
 	}
 
 	return f

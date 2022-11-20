@@ -22,19 +22,3 @@ func NewSocketTransactor(port uint16) TransActFunc {
 
 	return f
 }
-
-// NewUDSTransactor returns a transactorfunc that connects via Unix domain sockets
-func NewUDSTransactor() TransActFunc {
-	f := func(request *PwRequest) (string, error) {
-		fileName := MakeUDSAddress()
-		conn, err := net.Dial("unix", fileName)
-		if err != nil {
-			return "", err
-		}
-		defer func() { conn.Close() }()
-
-		return ProcessPwRequestClient(conn, conn, request)
-	}
-
-	return f
-}

@@ -19,8 +19,8 @@ type CmdContext struct {
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
-		//client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
-		client:      pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
+		client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
+		//client:      pwsrvbase.NewGenericJSONClient(pwsrvbase.NewUDSTransactor()),
 		jotsManager: fcrypt.GetGjotsManager(),
 	}
 }
