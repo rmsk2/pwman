@@ -22,6 +22,7 @@ func MakeUDSAddress() string {
 		panic(err)
 	}
 
+	// Under Windows files created in the user's home directory can only accessed by the user
 	return filepath.Join(user.HomeDir, PwUDS)
 }
 
