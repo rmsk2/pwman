@@ -16,7 +16,7 @@ import (
 
 const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
-const pwmanFile = "PWMANFILE"
+const envVarPwmanFile = "PWMANFILE"
 
 type procFunc func(g fcrypt.Gjotser) error
 
@@ -76,7 +76,7 @@ func getPwSafeFileName(cmdLineParam *string) string {
 		return *cmdLineParam
 	}
 
-	return os.Getenv(pwmanFile)
+	return os.Getenv(envVarPwmanFile)
 }
 
 func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string, error) {
