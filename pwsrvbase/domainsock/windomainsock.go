@@ -2,7 +2,7 @@
 // +build windows
 
 // Package windomainsock implements the pwman functionality of unix domain sockets on Windows
-package windomainsock
+package domainsock
 
 import (
 	"net"
