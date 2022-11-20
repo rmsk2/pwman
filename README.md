@@ -32,14 +32,14 @@ in the `rustpwman` documentation.
 
 While you can use `clitool` without `pwserv` it is way more comfortable to use it in conjuction with `pwserv` in most cases. To do that you
 obviously have to start `pwserv` before `clitool` can access it. In the default configuration `pwserv` creates a UNIX domain socket
-named `"/tmp/${username}.pwman"` which can only by accessed by the user who started `pwserv`. `pwserv` can also alternatively use the loopback
-device (or any other TCP socket) but without the additional access restrictions afforded by a UNIX domain socket. In order to switch to the loopback 
-device change the calls to `Serve()` in `pwserv.go` and `NewContext()` in `pwman.go` accordingly. 
+named `"/tmp/${username}.pwman"` on UNIX and `"%HOMEPATH%\pwman.sock"` on Windows which can only by accessed by the user who started 
+`pwserv`. `pwserv` can also alternatively use the loopback device (or any other TCP socket) but without the additional access restrictions 
+afforded by a UNIX domain socket. In order to switch to the loopback device change the calls to `Serve()` in `pwserv.go` and `NewContext()` 
+in `pwman.go` accordingly. 
 
-Interestingly enough Windows implements UNIX domain sockets since around 2017/2018. `pwman` let's you use UNIX domain sockets under Windows. 
-The corresponding routines can be found in the `windomainsock` package. If you use the functions offered by this package (instead of the ones 
-from `domainsock`) in the calls to `Serve()` in `pwserv.go` and `NewContext()` in `pwman.go` everything works as expected. UNIX domain sockets
-not only allow additional access control they are also noticebly faster than TCP over the loopback device, at least under Windows. 
+Interestingly enough Windows implements UNIX domain sockets since around 2017/2018.  The corresponding routines can be found in 
+`windomainsock.go`. UNIX domain sockets not only allow additional access control but on Windows they are also noticebly faster than 
+TCP over the loopback device.
 
 I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remeber to start it before using `clitool`.
 
