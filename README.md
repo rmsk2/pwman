@@ -45,4 +45,5 @@ I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle t
 
 # Building
 
-There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windwos) which allows build the two binaries mentioned above. 
+There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windwos) which allow building the two binaries mentioned 
+above. 
