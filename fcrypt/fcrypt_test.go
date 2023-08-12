@@ -2,6 +2,7 @@ package fcrypt
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -64,5 +65,20 @@ func Test3(t *testing.T) {
 	_, _, err = DecryptBytes(&password, enc)
 	if err == nil {
 		t.Fatal("Decryption should have failed")
+	}
+}
+
+func TestSha2KeyGen(t *testing.T) {
+	salt := "0011223344556677"
+	password := "Dies ist ein Test"
+
+	key, err := SHA256KeyGen(&password, []byte(salt))
+	if err != nil {
+		t.Fatalf("SHA256 key derivation did not work: %v", err)
+	}
+
+	testVal := fmt.Sprintf("%x", key)
+	if testVal != "8bbb8e596fdeb564b5ded3d60af1cf790a326309ada0045cc61d07fd982876d2" {
+		t.Fatalf("Wrong key generated: %s", testVal)
 	}
 }
