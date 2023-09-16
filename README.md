@@ -47,6 +47,10 @@ I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle t
 to simplify calls to `clitool` is to set the environment variable `PWMANFILE` to the file system location of the password safe file. If this
 variable is set and `-i` is not specified then `clitool` uses the value from the environment. If `-i` is present this value takes precedence.
 
+If you want to be able to replace the contents of an entry by the contents of the clipboard through the `clp` command you can set the environment
+variable `PWMANCLIP` to the value you would give to the `-c` option. If the `-c` option is present it takes precedence over the value of the
+environment variable.
+
 # Building
 
 There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windwos) which allow building the two binaries mentioned 
