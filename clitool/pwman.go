@@ -4,9 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
 	"pwman/pwsrvbase/domainsock"
+	"strings"
 )
 
 const defaulPbKdf = fcrypt.PbKdfArgon2id
@@ -391,6 +393,65 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 	)
 }
 
+// ClipboardCommand adds/modifies an entry in a file through replacing its content by the current
+// contents of the clipboard.
+func (c *CmdContext) ClipboardCommand(args []string) error {
+	putFlags := flag.NewFlagSet("pwman clp", flag.ContinueOnError)
+	inFile := putFlags.String("i", "", "File holding password safe")
+	key := putFlags.String("k", "", "Key of entry to modify")
+	clipCommand := putFlags.String("c", "", "Command to execute in order to retrieve the clipboard")
+
+	err := putFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	if *key == "" {
+		return fmt.Errorf("No key specified")
+	}
+
+	clipCall := getClipboardCommand(clipCommand)
+
+	if clipCall == "" {
+		return fmt.Errorf("No command for retrieving clipboard spcecified")
+	}
+
+	cliParams := strings.Split(clipCall, " ")
+	cmd := exec.Command(cliParams[0], cliParams[1:]...)
+
+	outData, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("Could not run command: %v", err)
+		return err
+	}
+
+	rawValue := string(outData)
+
+	return transact(c.jotsManager,
+		func(g fcrypt.Gjotser) error {
+			entryReplaced, err := g.UpsertEntry(*key, string(rawValue))
+			if err != nil {
+				return err
+			}
+
+			if entryReplaced {
+				fmt.Println("Entry replaced")
+			} else {
+				fmt.Println("Entry added")
+			}
+
+			return nil
+
+		}, &safeName, true, c.client,
+	)
+}
+
 func main() {
 	subcommParser := NewSubcommandParser()
 	ctx := NewContext()
@@ -399,12 +460,13 @@ func main() {
 	subcommParser.AddCommand("dec", ctx.DecryptCommand, "Decrypts a file")
 	subcommParser.AddCommand("list", ctx.ListCommand, "Lists keys of entries in a file")
 	subcommParser.AddCommand("get", ctx.GetCommand, "Get an entry from a file")
-	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry in a file")
+	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry by setting its contents through a file")
 	subcommParser.AddCommand("ren", ctx.RenameCommand, "Renames an entry in a file")
 	subcommParser.AddCommand("del", ctx.DeleteCommand, "Deletes an entry from a file")
 	subcommParser.AddCommand("pwd", ctx.PwdCommand, "Checks the password and transfers it to pwserv")
 	subcommParser.AddCommand("rst", ctx.ResetCommand, "Deletes the password from pwserv")
 	subcommParser.AddCommand("init", ctx.InitCommand, "Creates an empty password safe")
+	subcommParser.AddCommand("clp", ctx.ClipboardCommand, "Adds/modifies an entry by setting its contents through the clipboard")
 
 	subcommParser.Execute()
 }

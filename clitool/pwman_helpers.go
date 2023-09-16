@@ -17,6 +17,7 @@ import (
 const enterPwText = "Please enter password: "
 const reenterPwText = "Please reenter password: "
 const envVarPwmanFile = "PWMANFILE"
+const envVarPwmanClip = "PWMANCLIP"
 
 type procFunc func(g fcrypt.Gjotser) error
 
@@ -71,12 +72,20 @@ func GetSecurePasswordVerified(msg1, msg2 string) (string, error) {
 	return password1, nil
 }
 
-func getPwSafeFileName(cmdLineParam *string) string {
+func getParamOrEnvVar(cmdLineParam *string, envVar string) string {
 	if *cmdLineParam != "" {
 		return *cmdLineParam
 	}
 
-	return os.Getenv(envVarPwmanFile)
+	return os.Getenv(envVar)
+}
+
+func getPwSafeFileName(cmdLineParam *string) string {
+	return getParamOrEnvVar(cmdLineParam, envVarPwmanFile)
+}
+
+func getClipboardCommand(cmdLineParam *string) string {
+	return getParamOrEnvVar(cmdLineParam, envVarPwmanClip)
 }
 
 func getPassword(msg string, client pwsrvbase.PwStorer, fileName string) (string, error) {

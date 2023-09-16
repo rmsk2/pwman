@@ -9,13 +9,15 @@ access a password manager file as described in the `rustpwman` documentation. Th
 
 ```
 The following commands are available: 
+The following commands are available: 
+     clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
      del: Deletes an entry from a file
      enc: Encrypts a file
      get: Get an entry from a file
      init: Creates an empty password safe
      list: Lists keys of entries in a file
-     put: Adds/modifies an entry in a file
+     put: Adds/modifies an entry by setting its contents through a file
      pwd: Checks the password and transfers it to pwserv
      ren: Renames an entry in a file
      rst: Deletes the password from pwserv
