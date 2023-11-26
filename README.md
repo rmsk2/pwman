@@ -1,14 +1,13 @@
 # pwman
 
 This program is my plan B if I lose interest in maintaining `rustpwman`. This could happen if I either lose interest in Rust 
-programming or if at some point in time it becomes too tedious to migrate to newer versions of the roughly 140 dependencies
+programming or if at some point in time it becomes too tedious to migrate to newer versions of the over 200 dependencies
 that `rustpwman` has accumulated. Files created with `pwman` can be used with `rustpwman` and vice versa.
 
 The main component can be found in the `clitool` subdirectory. It implements a command line interface that allows to 
 access a password manager file as described in the `rustpwman` documentation. The following commands are provided.
 
 ```
-The following commands are available: 
 The following commands are available: 
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
