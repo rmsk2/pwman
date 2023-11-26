@@ -11,8 +11,31 @@ import (
 	"os"
 
 	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/scrypt"
 )
+
+type AeadGen func(key []byte) (cipher.AEAD, error)
+
+var AeadGenerator AeadGen = GenAes256Gcm
+
+func GenAes256Gcm(key []byte) (cipher.AEAD, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct AES object: %v", err)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct an AES-GCM object: %v", err)
+	}
+
+	return aesGCM, nil
+}
+
+func GenChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
+	return chacha20poly1305.New(key)
+}
 
 // Gjotser describes a thing that is in essence an encrypted key value store
 type Gjotser interface {
@@ -173,17 +196,12 @@ func EncryptBytes(password *string, data []byte, kdfId string) (encryptedBytes [
 		return nil, fmt.Errorf("Unable to perform pw based encryption: %v", err)
 	}
 
-	block, err := aes.NewCipher(key)
+	aead, err := AeadGenerator(key)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to perform pw based encryption: %v", err)
 	}
 
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to perform pw based encryption: %v", err)
-	}
-
-	nonce := make([]byte, aesGCM.NonceSize())
+	nonce := make([]byte, aead.NonceSize())
 
 	_, err = rand.Read(nonce)
 	if err != nil {
@@ -192,7 +210,7 @@ func EncryptBytes(password *string, data []byte, kdfId string) (encryptedBytes [
 
 	pwData.Salt = salt
 	pwData.Nonce = nonce
-	pwData.Data = aesGCM.Seal(nil, nonce, data, nil)
+	pwData.Data = aead.Seal(nil, nonce, data, nil)
 
 	res, err := json.MarshalIndent(pwData, "", "    ")
 	if err != nil {
@@ -241,17 +259,12 @@ func DecryptBytes(password *string, encData []byte) (data []byte, pbKdfUsed stri
 		return nil, "", fmt.Errorf("Unable to perform pw based decryption: %v", err)
 	}
 
-	block, err := aes.NewCipher(key)
+	aead, err := AeadGenerator(key)
 	if err != nil {
-		return nil, "", fmt.Errorf("Unable to perform pw based decryption: %v", err)
+		return nil, "", fmt.Errorf("Unable to perform pw based encryption: %v", err)
 	}
 
-	aesGCM, err := cipher.NewGCMWithNonceSize(block, len(nonce))
-	if err != nil {
-		return nil, "", fmt.Errorf("Unable to perform pw based decryption: %v", err)
-	}
-
-	data, err = aesGCM.Open(nil, nonce, dataEnc, nil)
+	data, err = aead.Open(nil, nonce, dataEnc, nil)
 	if err != nil {
 		return nil, "", fmt.Errorf("Unable to perform pw based decryption: %v", err)
 	}

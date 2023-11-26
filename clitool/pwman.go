@@ -453,6 +453,10 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 }
 
 func main() {
+	if os.Getenv("PWMANCHACHA20") != "" {
+		fcrypt.AeadGenerator = fcrypt.GenChaCha20Poly1305
+	}
+
 	subcommParser := NewSubcommandParser()
 	ctx := NewContext()
 

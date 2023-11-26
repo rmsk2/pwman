@@ -51,6 +51,9 @@ If you want to be able to replace the contents of an entry by the contents of th
 variable `PWMANCLIP` to the value you would give to the `-c` option. If the `-c` option is present it takes precedence over the value of the
 environment variable.
 
+If you set the environment variable `PWMANCHACHA20` to any value then `pwman` will use `ChaCha20Poly1305` instead of AES-256-GCM for en- and 
+decryption of the password data.
+
 # Building
 
 There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windwos) which allow building the two binaries mentioned 
