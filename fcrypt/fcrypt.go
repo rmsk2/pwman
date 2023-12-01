@@ -22,12 +22,26 @@ var AeadGenerator AeadGen = GenAes256Gcm
 func GenAes256Gcm(key []byte) (cipher.AEAD, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to construct AES object: %v", err)
+		return nil, fmt.Errorf("Unable to construct AES-256 object: %v", err)
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to construct an AES-GCM object: %v", err)
+		return nil, fmt.Errorf("Unable to construct an AES-256 GCM object: %v", err)
+	}
+
+	return aesGCM, nil
+}
+
+func GenAes192Gcm(key []byte) (cipher.AEAD, error) {
+	block, err := aes.NewCipher(key[0:24])
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct AES-192 object: %v", err)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct an AES-192 GCM object: %v", err)
 	}
 
 	return aesGCM, nil
