@@ -201,9 +201,6 @@ func EncryptBytes(password *string, data []byte, kdfId string) (encryptedBytes [
 	}
 
 	pwData := makePWDataMetaInfo(kdfId)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to perform pw based encryption: %v", err)
-	}
 
 	salt, key, err := GenKey(password, reGenKey)
 	if err != nil {

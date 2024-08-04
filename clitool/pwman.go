@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+const VersionInfo = "1.0.4"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 // CmdContext contains data which is common to all commands
@@ -393,6 +394,11 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 	)
 }
 
+func (c *CmdContext) GetVersion(args []string) error {
+	fmt.Println(VersionInfo)
+	return nil
+}
+
 // ClipboardCommand adds/modifies an entry in a file through replacing its content by the current
 // contents of the clipboard.
 func (c *CmdContext) ClipboardCommand(args []string) error {
@@ -475,6 +481,7 @@ func main() {
 	subcommParser.AddCommand("rst", ctx.ResetCommand, "Deletes the password from pwserv")
 	subcommParser.AddCommand("init", ctx.InitCommand, "Creates an empty password safe")
 	subcommParser.AddCommand("clp", ctx.ClipboardCommand, "Adds/modifies an entry by setting its contents through the clipboard")
+	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
 
 	subcommParser.Execute()
 }

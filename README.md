@@ -20,6 +20,7 @@ The following commands are available:
      pwd: Checks the password and transfers it to pwserv
      ren: Renames an entry in a file
      rst: Deletes the password from pwserv
+     ver: Print version information
 ```
 
 You can get additional help for any given command by calling `clitool <command> -h `. There is a second optional component which resides in the 
