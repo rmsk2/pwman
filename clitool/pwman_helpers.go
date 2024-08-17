@@ -124,7 +124,7 @@ func transact(manager fcrypt.GjotsManager, proc procFunc, inFile *string, doWrit
 	}
 
 	if doWrite {
-		return gjotsData.Close(*inFile, password)
+		return manager.Close(*inFile, password)
 	}
 
 	return nil

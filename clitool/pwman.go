@@ -11,22 +11,65 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.0.4"
+const VersionInfo = "1.1.0"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
+
+type ManagerCreator func(string) fcrypt.GjotsManager
 
 // CmdContext contains data which is common to all commands
 type CmdContext struct {
-	client      pwsrvbase.PwStorer
-	jotsManager fcrypt.GjotsManager
+	client             pwsrvbase.PwStorer
+	jotsManagerCreator ManagerCreator
 }
 
 // NewContext creates a new command context
 func NewContext() *CmdContext {
 	return &CmdContext{
 		//client: pwsrvbase.NewGenericJSONClient(pwsrvbase.NewSocketTransactor(pwsrvbase.PwServPort)),
-		client:      pwsrvbase.NewGenericJSONClient(domainsock.NewUDSTransactor()),
-		jotsManager: fcrypt.GetGjotsManager(),
+		client:             pwsrvbase.NewGenericJSONClient(domainsock.NewUDSTransactor()),
+		jotsManagerCreator: fcrypt.GetGjotsManager,
 	}
+}
+
+// InitCommand creates an encrypted emtpy password safe
+func (c *CmdContext) InitCommand(args []string) error {
+	initFlags := flag.NewFlagSet("pwman init", flag.ContinueOnError)
+	outFile := initFlags.String("o", "", "Output file. Stdout if not specified")
+	pbkfId := initFlags.String("k", fcrypt.PbKdfArgon2id, fmt.Sprintf("PBKDF to use. Allowed values: %s, %s, %s", fcrypt.PbKdfArgon2id, fcrypt.PbKdfScrypt, fcrypt.PbKdfSha256))
+
+	checkDict := map[string]bool{
+		fcrypt.PbKdfArgon2id: true,
+		fcrypt.PbKdfScrypt:   true,
+		fcrypt.PbKdfSha256:   true,
+	}
+
+	err := initFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *outFile == "" {
+		return fmt.Errorf("No output file specified")
+	}
+
+	_, ok := checkDict[*pbkfId]
+	if !ok {
+		return fmt.Errorf("Unknown PBKDF: %s", *pbkfId)
+	}
+
+	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize password safe: %v", err)
+	}
+
+	man := c.jotsManagerCreator(*outFile)
+
+	_, err = man.Init(*pbkfId)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize password safe: %v", err)
+	}
+
+	return man.Close(*outFile, password)
 }
 
 // EncryptCommand encrypts a file and writes the result to stdout
@@ -73,45 +116,6 @@ func (c *CmdContext) EncryptCommand(args []string) error {
 	return nil
 }
 
-// InitCommand creates an encrypted emtpy password safe
-func (c *CmdContext) InitCommand(args []string) error {
-	initFlags := flag.NewFlagSet("pwman init", flag.ContinueOnError)
-	outFile := initFlags.String("o", "", "Output file. Stdout if not specified")
-	pbkfId := initFlags.String("k", fcrypt.PbKdfArgon2id, fmt.Sprintf("PBKDF to use. Allowed values: %s, %s, %s", fcrypt.PbKdfArgon2id, fcrypt.PbKdfScrypt, fcrypt.PbKdfSha256))
-
-	checkDict := map[string]bool{
-		fcrypt.PbKdfArgon2id: true,
-		fcrypt.PbKdfScrypt:   true,
-		fcrypt.PbKdfSha256:   true,
-	}
-
-	err := initFlags.Parse(args)
-	if err != nil {
-		os.Exit(42)
-	}
-
-	if *outFile == "" {
-		return fmt.Errorf("No output file specified")
-	}
-
-	_, ok := checkDict[*pbkfId]
-	if !ok {
-		return fmt.Errorf("Unknown PBKDF: %s", *pbkfId)
-	}
-
-	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize password safe: %v", err)
-	}
-
-	gjots, err := c.jotsManager.Init(*pbkfId)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize password safe: %v", err)
-	}
-
-	return gjots.Close(*outFile, password)
-}
-
 // DecryptCommand decrypts a file and writes the result to stdout
 func (c *CmdContext) DecryptCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman dec", flag.ContinueOnError)
@@ -132,12 +136,7 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
 
-	encBytes, err := os.ReadFile(*inFile)
-	if err != nil {
-		return fmt.Errorf("Error decrypting file: %v", err)
-	}
-
-	clearData, _, err := fcrypt.DecryptBytes(&password, encBytes)
+	clearData, _, err := fcrypt.LoadEncData(password, *inFile)
 	if err != nil {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
@@ -174,8 +173,10 @@ func (c *CmdContext) PwdCommand(args []string) error {
 
 	println()
 
+	man := c.jotsManagerCreator(safeName)
+
 	// Verify password
-	_, err = c.jotsManager.Open(safeName, password)
+	_, err = man.Open(safeName, password)
 	if err != nil {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
@@ -238,7 +239,9 @@ func (c *CmdContext) ListCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			g.PrintKeyList()
 
@@ -269,7 +272,9 @@ func (c *CmdContext) GetCommand(args []string) error {
 		return fmt.Errorf("No key specified")
 	}
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			err = g.PrintEntry(*key)
 			if err != nil {
@@ -303,7 +308,9 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 		return fmt.Errorf("No key specified")
 	}
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			return g.DeleteEntry(*key)
 		}, &safeName, true, c.client,
@@ -336,7 +343,9 @@ func (c *CmdContext) RenameCommand(args []string) error {
 		return fmt.Errorf("No new key specified")
 	}
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			return g.RenameEntry(*key, *newKey)
 
@@ -375,7 +384,9 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 		return fmt.Errorf("Unable to load value data from '%s': %v", *dataFile, err)
 	}
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			entryReplaced, err := g.UpsertEntry(*key, string(rawValue))
 			if err != nil {
@@ -439,7 +450,9 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 
 	rawValue := string(outData)
 
-	return transact(c.jotsManager,
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
 		func(g fcrypt.Gjotser) error {
 			entryReplaced, err := g.UpsertEntry(*key, string(rawValue))
 			if err != nil {

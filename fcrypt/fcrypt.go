@@ -53,7 +53,6 @@ func GenChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
 
 // Gjotser describes a thing that is in essence an encrypted key value store
 type Gjotser interface {
-	Close(fileName string, password string) error
 	PrintKeyList() error
 	PrintEntry(key string) error
 	GetKeyList() ([]string, error)
@@ -66,21 +65,13 @@ type Gjotser interface {
 type GjotsManager interface {
 	Open(inFile string, password string) (Gjotser, error)
 	Init(pbkdfId string) (Gjotser, error)
+	Close(fileName string, password string) error
 }
 
-type jotsManager struct {
-}
-
-func (j *jotsManager) Open(inFile string, password string) (Gjotser, error) {
-	return makeGjotsFromFile(inFile, password)
-}
-
-func (j *jotsManager) Init(pbkdfId string) (Gjotser, error) {
-	return makeGjotsEmpty(pbkdfId)
-}
-
-func GetGjotsManager() GjotsManager {
-	return &jotsManager{}
+func GetGjotsManager(name string) GjotsManager {
+	return &jotsFileManager{
+		jotser: nil,
+	}
 }
 
 // KeyDeriveFunc is function that knows how to create an AES-256 key from a salt and a password
@@ -244,6 +235,21 @@ func SaveEncData(data []byte, password string, fileName string, kdfId string) er
 	}
 
 	return nil
+}
+
+// LoadEncData loads the specified data in encrypted form and returns its plaintext
+func LoadEncData(password string, fileName string) ([]byte, string, error) {
+	encBytes, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	clearData, kdfId, err := DecryptBytes(&password, encBytes)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	return clearData, kdfId, nil
 }
 
 // DecryptBytes returns the data bytes in decrypted form
