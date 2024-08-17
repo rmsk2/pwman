@@ -52,7 +52,7 @@ variable `PWMANCLIP` to the value you would give to the `-c` option. If the `-c`
 environment variable.
 
 If you set the environment variable `PWMANCIPHER` to the value `AES192` then `pwman` will use AES-192 GCM any other value makes `pwman` using
-ChaCha20Poly1305` instead of AES-256-GCM for en- and decryption of the password data.
+ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password data.
 
 # Building
 
