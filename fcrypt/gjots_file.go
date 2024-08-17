@@ -44,10 +44,7 @@ func makeGjotsFromFile(inFile string, password string) (*gjotsRaw, error) {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjotsFile := &gjotsRaw{
-		pbKdfId: kdfId,
-	}
-
+	gjotsFile := makeGjotsRaw(kdfId)
 	gjotsFile.FromSequence(gjotsData)
 
 	return gjotsFile, nil
