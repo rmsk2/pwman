@@ -108,7 +108,7 @@ func (o *Obfucator) DeObfuscate() (string, string, error) {
 	obfString := os.Getenv(o.envName)
 
 	if obfString == "" {
-		return "", "", fmt.Errorf("Unable to deobfuscate WebDAV password: Enviroment variable '%s' not set", o.envName)
+		return "", "", fmt.Errorf("Unable to deobfuscate WebDAV password: Environment variable '%s' not set", o.envName)
 	}
 
 	h := sha256.New()
