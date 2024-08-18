@@ -1,8 +1,8 @@
 # pwman
 
-This program is my plan B if I lose interest in maintaining `rustpwman`. This could happen if I either lose interest in Rust 
-programming or if at some point in time it becomes too tedious to migrate to newer versions of the over 200 dependencies
-that `rustpwman` has accumulated. Files created with `pwman` can be used with `rustpwman` and vice versa.
+This program is my plan B if I lose interest in maintaining [`rustpwman`](https://github.com/rmsk2/rustpwman). This could happen 
+if I either lose interest in Rust programming or if at some point in time it becomes too tedious to migrate to newer versions of the 
+over 200 dependencies that `rustpwman` has accumulated. Files created with `pwman` can be used with `rustpwman` and vice versa.
 
 The main component can be found in the `clitool` subdirectory. It implements a command line interface that allows to 
 access a password manager file as described in the `rustpwman` documentation. The following commands are provided.
@@ -53,6 +53,10 @@ environment variable.
 
 If you set the environment variable `PWMANCIPHER` to the value `AES192` then `pwman` will use AES-192 GCM any other value makes `pwman` using
 ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password data.
+
+`pwman` is also able to access the file containing the encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to
+exist in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
+way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support).
 
 # Building
 
