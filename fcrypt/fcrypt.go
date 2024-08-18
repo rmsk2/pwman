@@ -2,13 +2,16 @@
 package fcrypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/chacha20poly1305"
@@ -69,9 +72,18 @@ type GjotsManager interface {
 }
 
 func GetGjotsManager(name string) GjotsManager {
-	return &jotsFileManager{
-		jotser: nil,
+	var res GjotsManager
+
+	if strings.HasPrefix(name, "https://") {
+		deobfuscator := NewObfuscator("RUSTPWMAN_OBFUSCATION", ".rustpwman")
+		res = NewGjotsWebdav(NewWebDavHelper(), deobfuscator.DeObfuscate)
+	} else {
+		res = &jotsFileManager{
+			jotser: nil,
+		}
 	}
+
+	return res
 }
 
 // KeyDeriveFunc is function that knows how to create an AES-256 key from a salt and a password
@@ -222,6 +234,21 @@ func EncryptBytes(password *string, data []byte, kdfId string) (encryptedBytes [
 	return res, nil
 }
 
+func WriteEncData(data []byte, password string, w io.Writer, kdfId string) error {
+	encBytes, err := EncryptBytes(&password, data, kdfId)
+	if err != nil {
+		return fmt.Errorf("Unable to encrypt file: %v", err)
+	}
+
+	_, err = io.Copy(w, bytes.NewBuffer(encBytes))
+	if err != nil {
+		return fmt.Errorf("Unable to encrypt file: %v", err)
+	}
+
+	return nil
+
+}
+
 // SaveEncData saves the specified data in encrypted form
 func SaveEncData(data []byte, password string, fileName string, kdfId string) error {
 	encBytes, err := EncryptBytes(&password, data, kdfId)
@@ -235,6 +262,21 @@ func SaveEncData(data []byte, password string, fileName string, kdfId string) er
 	}
 
 	return nil
+}
+
+func ReadEncData(password string, r io.Reader) ([]byte, string, error) {
+	encBytes, err := io.ReadAll(r)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	clearData, kdfId, err := DecryptBytes(&password, encBytes)
+	if err != nil {
+		return nil, "", fmt.Errorf("Error decrypting file: %v", err)
+	}
+
+	return clearData, kdfId, nil
+
 }
 
 // LoadEncData loads the specified data in encrypted form and returns its plaintext
