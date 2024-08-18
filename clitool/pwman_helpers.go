@@ -23,9 +23,16 @@ type procFunc func(g fcrypt.Gjotser) error
 
 // MakePasswordName derives a name for a password form the name of a encrypted container
 func MakePasswordName(fileName string) (string, error) {
-	fullName, err := filepath.Abs(fileName)
-	if err != nil {
-		return "", err
+	var fullName string
+	var err error
+
+	if !strings.HasPrefix(fileName, "https://") {
+		fullName, err = filepath.Abs(fileName)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		fullName = fileName
 	}
 
 	hash := md5.New()
