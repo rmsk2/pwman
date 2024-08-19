@@ -28,6 +28,12 @@ func NewObfuscator(e, c string) *Obfucator {
 	}
 }
 
+// func checkFileExists(filePath string) bool {
+// 	_, err := os.Stat(filePath)
+
+// 	return !errors.Is(err, os.ErrNotExist)
+// }
+
 func (o *Obfucator) Obfuscate(password string) (string, error) {
 	return "", nil
 }
