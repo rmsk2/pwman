@@ -6,10 +6,12 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type Obfucator struct {
@@ -28,14 +30,50 @@ func NewObfuscator(e, c string) *Obfucator {
 	}
 }
 
-// func checkFileExists(filePath string) bool {
-// 	_, err := os.Stat(filePath)
+func checkFileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
 
-// 	return !errors.Is(err, os.ErrNotExist)
-// }
+	return !errors.Is(err, os.ErrNotExist)
+}
 
-func (o *Obfucator) Obfuscate(password string) (string, error) {
-	return "", nil
+func (o *Obfucator) Obfuscate(userId string, password string) error {
+	key, iv, err := o.calcObfKey()
+	if err != nil {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
+	}
+
+	confPath, err := o.makeConfPath()
+	if err != nil {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
+	}
+
+	if checkFileExists(confPath) {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: Config already exists")
+	}
+
+	cip := NewAes128CfbCryptor(key, iv)
+	pw := []byte(password)
+
+	cip.Process(pw, cip.EncryptByte)
+
+	rustpwmanConf, err := os.Create(confPath)
+	if err != nil {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
+	}
+	defer rustpwmanConf.Close()
+
+	_, err = fmt.Fprintf(rustpwmanConf, "webdav_user = \"%s\"\n", userId)
+	if err != nil {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
+	}
+
+	res := strings.ToUpper(hex.EncodeToString(pw))
+	_, err = fmt.Fprintf(rustpwmanConf, "webdav_pw = \"##obfuscated##:%s\"\n", res)
+	if err != nil {
+		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
+	}
+
+	return nil
 }
 
 func (o *Obfucator) matchPassword(line string) []byte {
@@ -50,13 +88,12 @@ func (o *Obfucator) matchPassword(line string) []byte {
 		return nil
 	}
 
-	res := make([]byte, hex.DecodedLen(len(obfData)))
-	n, err := hex.Decode(res, []byte(obfData))
+	n, err := hex.DecodeString(obfData)
 	if err != nil {
 		return nil
 	}
 
-	return res[:n]
+	return n
 }
 
 func (o *Obfucator) matchUser(line string) string {
@@ -69,16 +106,23 @@ func (o *Obfucator) matchUser(line string) string {
 	return matches[1]
 }
 
+func (o *Obfucator) makeConfPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("Unable to determine home directory: %v", err)
+	}
+
+	return filepath.Join(homeDir, o.confName), nil
+}
+
 func (o *Obfucator) readRustpwmanConf() (string, []byte, error) {
 	uid := ""
 	var password []byte = nil
 
-	homeDir, err := os.UserHomeDir()
+	confPath, err := o.makeConfPath()
 	if err != nil {
 		return "", nil, fmt.Errorf("Unable to deobfuscate WebDAV password: %v", err)
 	}
-
-	confPath := filepath.Join(homeDir, o.confName)
 
 	rustpwmanConf, err := os.Open(confPath)
 	if err != nil {
@@ -110,18 +154,27 @@ func (o *Obfucator) readRustpwmanConf() (string, []byte, error) {
 	return uid, password, nil
 }
 
-func (o *Obfucator) DeObfuscate() (string, string, error) {
+func (o *Obfucator) calcObfKey() ([]byte, []byte, error) {
 	obfString := os.Getenv(o.envName)
 
 	if obfString == "" {
-		return "", "", fmt.Errorf("Unable to deobfuscate WebDAV password: Environment variable '%s' not set", o.envName)
+		return nil, nil, fmt.Errorf("Environment variable '%s' not set", o.envName)
 	}
 
 	h := sha256.New()
 	h.Write([]byte(obfString))
 	raw := h.Sum(nil)
 
-	cip := NewAes128CfbCryptor(raw[:16], raw[16:])
+	return raw[:16], raw[16:], nil
+}
+
+func (o *Obfucator) DeObfuscate() (string, string, error) {
+	key, iv, err := o.calcObfKey()
+	if err != nil {
+		return "", "", fmt.Errorf("Unable to deobfuscate WebDAV password: %v", err)
+	}
+
+	cip := NewAes128CfbCryptor(key, iv)
 
 	userId, password, err := o.readRustpwmanConf()
 	if err != nil {

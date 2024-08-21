@@ -18,6 +18,9 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+const ObfEnvVar = "RUSTPWMAN_OBFUSCATION"
+const ObfConfig = ".rustpwman"
+
 type AeadGen func(key []byte) (cipher.AEAD, error)
 
 var AeadGenerator AeadGen = GenAes256Gcm
@@ -75,7 +78,7 @@ func GetGjotsManager(name string) GjotsManager {
 	var res GjotsManager
 
 	if strings.HasPrefix(name, "https://") {
-		deobfuscator := NewObfuscator("RUSTPWMAN_OBFUSCATION", ".rustpwman")
+		deobfuscator := NewObfuscator(ObfEnvVar, ObfConfig)
 		res = NewGjotsWebdav(NewWebDavHelper(), deobfuscator.DeObfuscate)
 	} else {
 		res = &jotsFileManager{

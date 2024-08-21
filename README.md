@@ -16,6 +16,7 @@ The following commands are available:
      get: Get an entry from a file
      init: Creates an empty password safe
      list: Lists keys of entries in a file
+     obf: Obfuscate WebDAV password and create corresponding config
      put: Adds/modifies an entry by setting its contents through a file
      pwd: Checks the password and transfers it to pwserv
      ren: Renames an entry in a file
@@ -54,9 +55,10 @@ environment variable.
 If you set the environment variable `PWMANCIPHER` to the value `AES192` then `pwman` will use AES-192 GCM any other value makes `pwman` using
 ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password data.
 
-`pwman` is also able to access the file containing the encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to
-exist in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
-way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support).
+`pwman` is also able to access files containing encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to exist 
+in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
+way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
+`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`.
 
 # Building
 

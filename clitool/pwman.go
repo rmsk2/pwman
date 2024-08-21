@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.1.1"
+const VersionInfo = "1.2.0"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -410,6 +410,33 @@ func (c *CmdContext) GetVersion(args []string) error {
 	return nil
 }
 
+func (c *CmdContext) ObfuscateWebDavPassword(args []string) error {
+	obfFlags := flag.NewFlagSet("pwman obf", flag.ContinueOnError)
+	userId := obfFlags.String("u", "", "WebDAV user id")
+
+	err := obfFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *userId == "" {
+		return fmt.Errorf("No user id specified")
+	}
+
+	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
+	if err != nil {
+		return err
+	}
+
+	obf := fcrypt.NewObfuscator(fcrypt.ObfEnvVar, fcrypt.ObfConfig)
+	err = obf.Obfuscate(*userId, password)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ClipboardCommand adds/modifies an entry in a file through replacing its content by the current
 // contents of the clipboard.
 func (c *CmdContext) ClipboardCommand(args []string) error {
@@ -495,6 +522,7 @@ func main() {
 	subcommParser.AddCommand("init", ctx.InitCommand, "Creates an empty password safe")
 	subcommParser.AddCommand("clp", ctx.ClipboardCommand, "Adds/modifies an entry by setting its contents through the clipboard")
 	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
+	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
 
 	subcommParser.Execute()
 }
