@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-type CredGetter func() (string, string, error)
+type WebDavCredGetter func() (string, string, error)
 
 type GjWebdav interface {
 	WriteFile(data []byte, userId string, password string, fileName string) error
@@ -17,10 +17,10 @@ type GjWebdav interface {
 type jotsWebdavManager struct {
 	jotser *gjotsRaw
 	dav    GjWebdav
-	pwGet  CredGetter
+	pwGet  WebDavCredGetter
 }
 
-func NewGjotsWebdav(d GjWebdav, g CredGetter) GjotsManager {
+func NewGjotsWebdav(d GjWebdav, g WebDavCredGetter) GjotsManager {
 	return &jotsWebdavManager{
 		jotser: nil,
 		dav:    d,
