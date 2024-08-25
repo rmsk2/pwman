@@ -7,49 +7,11 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
-	"unicode"
 )
-
-// DiscoverContextURL performs a DNS-based CardDAV/CalDAV service discovery as
-// described in RFC 6352 section 11. It returns the URL to the CardDAV server.
-func DiscoverContextURL(ctx context.Context, service, domain string) (string, error) {
-	var resolver net.Resolver
-
-	// Only lookup TLS records, plaintext connections are insecure
-	_, addrs, err := resolver.LookupSRV(ctx, service+"s", "tcp", domain)
-	if dnsErr, ok := err.(*net.DNSError); ok {
-		if dnsErr.IsTemporary {
-			return "", err
-		}
-	} else if err != nil {
-		return "", err
-	}
-
-	if len(addrs) == 0 {
-		return "", fmt.Errorf("webdav: domain doesn't have an SRV record")
-	}
-	addr := addrs[0]
-
-	target := strings.TrimSuffix(addr.Target, ".")
-	if target == "" {
-		return "", fmt.Errorf("webdav: empty target in SRV record")
-	}
-
-	// TODO: perform a TXT lookup, check for a "path" key in the response
-	u := url.URL{Scheme: "https"}
-	if addr.Port == 443 {
-		u.Host = target
-	} else {
-		u.Host = fmt.Sprintf("%v:%v", target, addr.Port)
-	}
-	u.Path = "/.well-known/" + service
-	return u.String(), nil
-}
 
 // HTTPClient performs HTTP requests. It's implemented by *http.Client.
 type HTTPClient interface {
@@ -180,7 +142,7 @@ func (c *Client) PropFind(ctx context.Context, path string, depth Depth, propfin
 	return c.DoMultiStatus(req.WithContext(ctx))
 }
 
-// PropfindFlat performs a PROPFIND request with a zero depth.
+// PropFindFlat performs a PROPFIND request with a zero depth.
 func (c *Client) PropFindFlat(ctx context.Context, path string, propfind *PropFind) (*Response, error) {
 	ms, err := c.PropFind(ctx, path, DepthZero, propfind)
 	if err != nil {
@@ -192,65 +154,4 @@ func (c *Client) PropFindFlat(ctx context.Context, path string, propfind *PropFi
 		return nil, fmt.Errorf("PROPFIND with Depth: 0 returned %d responses", len(ms.Responses))
 	}
 	return &ms.Responses[0], nil
-}
-
-func parseCommaSeparatedSet(values []string, upper bool) map[string]bool {
-	m := make(map[string]bool)
-	for _, v := range values {
-		fields := strings.FieldsFunc(v, func(r rune) bool {
-			return unicode.IsSpace(r) || r == ','
-		})
-		for _, f := range fields {
-			if upper {
-				f = strings.ToUpper(f)
-			} else {
-				f = strings.ToLower(f)
-			}
-			m[f] = true
-		}
-	}
-	return m
-}
-
-func (c *Client) Options(ctx context.Context, path string) (classes map[string]bool, methods map[string]bool, err error) {
-	req, err := c.NewRequest(http.MethodOptions, path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	resp, err := c.Do(req.WithContext(ctx))
-	if err != nil {
-		return nil, nil, err
-	}
-	resp.Body.Close()
-
-	classes = parseCommaSeparatedSet(resp.Header["Dav"], false)
-	if !classes["1"] {
-		return nil, nil, fmt.Errorf("webdav: server doesn't support DAV class 1")
-	}
-
-	methods = parseCommaSeparatedSet(resp.Header["Allow"], true)
-	return classes, methods, nil
-}
-
-// SyncCollection perform a `sync-collection` REPORT operation on a resource
-func (c *Client) SyncCollection(ctx context.Context, path, syncToken string, level Depth, limit *Limit, prop *Prop) (*MultiStatus, error) {
-	q := SyncCollectionQuery{
-		SyncToken: syncToken,
-		SyncLevel: level.String(),
-		Limit:     limit,
-		Prop:      prop,
-	}
-
-	req, err := c.NewXMLRequest("REPORT", path, &q)
-	if err != nil {
-		return nil, err
-	}
-
-	ms, err := c.DoMultiStatus(req.WithContext(ctx))
-	if err != nil {
-		return nil, err
-	}
-
-	return ms, nil
 }
