@@ -3,6 +3,8 @@ package fcrypt
 import (
 	"fmt"
 	"sort"
+	"strings"
+	"unicode/utf8"
 )
 
 // gjotsEntry represents an entry in a gjots file
@@ -84,6 +86,57 @@ func (g *gjotsRaw) GetKeyList() ([]string, error) {
 	sort.Strings(keys)
 
 	return keys, nil
+}
+
+// PrintAll prints the whole contents of the password file
+func (g *gjotsRaw) PrintAll() error {
+	keys := make([]string, 0, len(g.EntryDict))
+	for i := range g.EntryDict {
+		keys = append(keys, i)
+	}
+
+	sort.Strings(keys)
+
+	for _, i := range keys {
+		value, err := g.GetEntry(i)
+		if err != nil {
+			return err
+		}
+
+		lineLen := 80
+		stars := "***"
+		txtLen := utf8.RuneCountInString(i)
+		fillLen := lineLen - txtLen - 2*len(stars)
+		var fillerLeft string
+		var fillerRight string
+
+		if fillLen <= 0 {
+			fillerLeft = " "
+			fillerRight = " "
+		} else {
+			if fillLen%2 == 0 {
+				fillerLeft = strings.Repeat(" ", fillLen/2)
+				fillerRight = strings.Repeat(" ", fillLen/2)
+			} else {
+				fillerLeft = strings.Repeat(" ", fillLen/2)
+				fillerRight = strings.Repeat(" ", fillLen/2+1)
+			}
+		}
+
+		title := fmt.Sprintf("%s%s%s%s%s", stars, fillerLeft, i, fillerRight, stars)
+		e := strings.Repeat(" ", utf8.RuneCountInString(title)-2*len(stars))
+		empty := fmt.Sprintf("%s%s%s", stars, e, stars)
+		bar := strings.Repeat("*", utf8.RuneCountInString(title))
+		fmt.Println(bar)
+		fmt.Println(empty)
+		fmt.Println(title)
+		fmt.Println(empty)
+		fmt.Println(bar)
+		fmt.Println(value)
+		fmt.Println()
+	}
+
+	return nil
 }
 
 // GetEntry returns the data identified by key

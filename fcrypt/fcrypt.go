@@ -61,6 +61,7 @@ func GenChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
 type Gjotser interface {
 	PrintKeyList() error
 	PrintEntry(key string) error
+	PrintAll() error
 	GetKeyList() ([]string, error)
 	GetEntry(key string) (string, error)
 	DeleteEntry(key string) error
