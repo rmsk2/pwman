@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 )
 
+const Simple = "simple"
 const TxtPrt = "text"
 const DefaultPrt = TxtPrt
 
@@ -31,7 +32,7 @@ func makeGjotsRaw(kdfId string, prts map[string]ValuePrinter) *gjotsRaw {
 		printers:  prts,
 	}
 
-	res.printers["simple"] = res.simplePrint
+	res.printers[Simple] = res.simplePrint
 
 	return res
 }
