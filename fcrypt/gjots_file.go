@@ -6,11 +6,19 @@ import (
 )
 
 type jotsFileManager struct {
-	jotser *gjotsRaw
+	jotser   *gjotsRaw
+	printers map[string]ValuePrinter
+}
+
+func NewJotsFileManager() *jotsFileManager {
+	return &jotsFileManager{
+		jotser:   nil,
+		printers: map[string]ValuePrinter{},
+	}
 }
 
 func (j *jotsFileManager) Open(inFile string, password string) (Gjotser, error) {
-	h, err := makeGjotsFromFile(inFile, password)
+	h, err := j.makeGjotsFromFile(inFile, password)
 	if err != nil {
 		return nil, err
 	}
@@ -20,18 +28,22 @@ func (j *jotsFileManager) Open(inFile string, password string) (Gjotser, error) 
 	return j.jotser, nil
 }
 
+func (j *jotsFileManager) SetPrinters(prts map[string]ValuePrinter) {
+	j.printers = prts
+}
+
 func (j *jotsFileManager) Close(inFile string, password string) error {
 	return j.saveGjotsToFile(inFile, password)
 }
 
 func (j *jotsFileManager) Init(pbkdfId string) (Gjotser, error) {
-	j.jotser = makeGjotsRaw(pbkdfId)
+	j.jotser = makeGjotsRaw(pbkdfId, j.printers)
 
 	return j.jotser, nil
 }
 
 // makeGjotsFromFile loads and decrypts a file
-func makeGjotsFromFile(inFile string, password string) (*gjotsRaw, error) {
+func (j *jotsFileManager) makeGjotsFromFile(inFile string, password string) (*gjotsRaw, error) {
 	clearData, kdfId, err := LoadEncData(password, inFile)
 	if err != nil {
 		return nil, err
@@ -44,7 +56,7 @@ func makeGjotsFromFile(inFile string, password string) (*gjotsRaw, error) {
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjotsFile := makeGjotsRaw(kdfId)
+	gjotsFile := makeGjotsRaw(kdfId, j.printers)
 	gjotsFile.FromSequence(gjotsData)
 
 	return gjotsFile, nil

@@ -22,6 +22,7 @@ const ObfEnvVar = "RUSTPWMAN_OBFUSCATION"
 const ObfConfig = ".rustpwman"
 
 type AeadGen func(key []byte) (cipher.AEAD, error)
+type ValuePrinter func(key, value string) error
 
 var AeadGenerator AeadGen = GenAes256Gcm
 
@@ -62,6 +63,7 @@ type Gjotser interface {
 	PrintKeyList() error
 	PrintEntry(key string) error
 	PrintAll() error
+	PrintAllWithFormat(format string) error
 	GetKeyList() ([]string, error)
 	GetEntry(key string) (string, error)
 	DeleteEntry(key string) error
@@ -73,6 +75,7 @@ type GjotsManager interface {
 	Open(inFile string, password string) (Gjotser, error)
 	Init(pbkdfId string) (Gjotser, error)
 	Close(fileName string, password string) error
+	SetPrinters(map[string]ValuePrinter)
 }
 
 func GetGjotsManager(name string) GjotsManager {
@@ -82,10 +85,14 @@ func GetGjotsManager(name string) GjotsManager {
 		deobfuscator := NewObfuscator(ObfEnvVar, ObfConfig)
 		res = NewGjotsWebdav(NewWebDavHelper(), deobfuscator.DeObfuscate)
 	} else {
-		res = &jotsFileManager{
-			jotser: nil,
-		}
+		res = NewJotsFileManager()
 	}
+
+	printers := map[string]ValuePrinter{
+		DefaultPrt: PrintText,
+	}
+
+	res.SetPrinters(printers)
 
 	return res
 }

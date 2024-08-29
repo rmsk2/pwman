@@ -7,6 +7,9 @@ import (
 	"unicode/utf8"
 )
 
+const TxtPrt = "text"
+const DefaultPrt = TxtPrt
+
 // gjotsEntry represents an entry in a gjots file
 type gjotsEntry struct {
 	Key  string
@@ -17,14 +20,20 @@ type gjotsEntry struct {
 type gjotsRaw struct {
 	EntryDict map[string]string
 	pbKdfId   string
+	printers  map[string]ValuePrinter
 }
 
 // makeGjotsRaw creates an empty GjotsFile data structure
-func makeGjotsRaw(kdfId string) *gjotsRaw {
-	return &gjotsRaw{
+func makeGjotsRaw(kdfId string, prts map[string]ValuePrinter) *gjotsRaw {
+	res := &gjotsRaw{
 		EntryDict: map[string]string{},
 		pbKdfId:   kdfId,
+		printers:  prts,
 	}
+
+	res.printers["simple"] = res.simplePrint
+
+	return res
 }
 
 func (g *gjotsRaw) ToSeqence() []gjotsEntry {
@@ -63,6 +72,13 @@ func (g *gjotsRaw) PrintKeyList() error {
 	return nil
 }
 
+func (g *gjotsRaw) simplePrint(key, value string) error {
+	fmt.Printf("----- %s -----\n", key)
+	fmt.Println(value)
+
+	return nil
+}
+
 // PrintEntry searches for an entry and if found prints it
 func (g *gjotsRaw) PrintEntry(key string) error {
 	value, err := g.GetEntry(key)
@@ -70,8 +86,7 @@ func (g *gjotsRaw) PrintEntry(key string) error {
 		return err
 	}
 
-	fmt.Printf("----- %s -----\n", key)
-	fmt.Println(value)
+	_ = g.simplePrint(key, value)
 
 	return nil
 }
@@ -88,8 +103,12 @@ func (g *gjotsRaw) GetKeyList() ([]string, error) {
 	return keys, nil
 }
 
-// PrintAll prints the whole contents of the password file
-func (g *gjotsRaw) PrintAll() error {
+func (g *gjotsRaw) PrintAllWithFormat(format string) error {
+	printer, ok := g.printers[format]
+	if !ok {
+		return fmt.Errorf("Unknown printer format: '%s'", format)
+	}
+
 	keys := make([]string, 0, len(g.EntryDict))
 	for i := range g.EntryDict {
 		keys = append(keys, i)
@@ -103,40 +122,18 @@ func (g *gjotsRaw) PrintAll() error {
 			return err
 		}
 
-		lineLen := 80
-		stars := "***"
-		txtLen := utf8.RuneCountInString(i)
-		fillLen := lineLen - txtLen - 2*len(stars)
-		var fillerLeft string
-		var fillerRight string
-
-		if fillLen <= 0 {
-			fillerLeft = " "
-			fillerRight = " "
-		} else {
-			if fillLen%2 == 0 {
-				fillerLeft = strings.Repeat(" ", fillLen/2)
-				fillerRight = strings.Repeat(" ", fillLen/2)
-			} else {
-				fillerLeft = strings.Repeat(" ", fillLen/2)
-				fillerRight = strings.Repeat(" ", fillLen/2+1)
-			}
+		err = printer(i, value)
+		if err != nil {
+			return fmt.Errorf("Unable to print value: %v", err)
 		}
-
-		title := fmt.Sprintf("%s%s%s%s%s", stars, fillerLeft, i, fillerRight, stars)
-		e := strings.Repeat(" ", utf8.RuneCountInString(title)-2*len(stars))
-		empty := fmt.Sprintf("%s%s%s", stars, e, stars)
-		bar := strings.Repeat("*", utf8.RuneCountInString(title))
-		fmt.Println(bar)
-		fmt.Println(empty)
-		fmt.Println(title)
-		fmt.Println(empty)
-		fmt.Println(bar)
-		fmt.Println(value)
-		fmt.Println()
 	}
 
 	return nil
+}
+
+// PrintAll prints the whole contents of the password file
+func (g *gjotsRaw) PrintAll() error {
+	return g.PrintAllWithFormat(DefaultPrt)
 }
 
 // GetEntry returns the data identified by key
@@ -190,4 +187,40 @@ func (g *gjotsRaw) UpsertEntry(key string, data string) (bool, error) {
 	g.EntryDict[key] = data
 
 	return ok, nil
+}
+
+func PrintText(key string, value string) error {
+	lineLen := 80
+	stars := "***"
+	txtLen := utf8.RuneCountInString(key)
+	fillLen := lineLen - txtLen - 2*len(stars)
+	var fillerLeft string
+	var fillerRight string
+
+	if fillLen <= 0 {
+		fillerLeft = " "
+		fillerRight = " "
+	} else {
+		if fillLen%2 == 0 {
+			fillerLeft = strings.Repeat(" ", fillLen/2)
+			fillerRight = strings.Repeat(" ", fillLen/2)
+		} else {
+			fillerLeft = strings.Repeat(" ", fillLen/2)
+			fillerRight = strings.Repeat(" ", fillLen/2+1)
+		}
+	}
+
+	title := fmt.Sprintf("%s%s%s%s%s", stars, fillerLeft, key, fillerRight, stars)
+	e := strings.Repeat(" ", utf8.RuneCountInString(title)-2*len(stars))
+	empty := fmt.Sprintf("%s%s%s", stars, e, stars)
+	bar := strings.Repeat("*", utf8.RuneCountInString(title))
+	fmt.Println(bar)
+	fmt.Println(empty)
+	fmt.Println(title)
+	fmt.Println(empty)
+	fmt.Println(bar)
+	fmt.Println(value)
+	fmt.Println()
+
+	return nil
 }

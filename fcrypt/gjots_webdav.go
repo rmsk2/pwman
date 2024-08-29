@@ -15,16 +15,18 @@ type GjWebdav interface {
 }
 
 type jotsWebdavManager struct {
-	jotser *gjotsRaw
-	dav    GjWebdav
-	pwGet  WebDavCredGetter
+	jotser   *gjotsRaw
+	dav      GjWebdav
+	pwGet    WebDavCredGetter
+	printers map[string]ValuePrinter
 }
 
 func NewGjotsWebdav(d GjWebdav, g WebDavCredGetter) GjotsManager {
 	return &jotsWebdavManager{
-		jotser: nil,
-		dav:    d,
-		pwGet:  g,
+		jotser:   nil,
+		dav:      d,
+		pwGet:    g,
+		printers: map[string]ValuePrinter{},
 	}
 }
 
@@ -51,7 +53,7 @@ func (j *jotsWebdavManager) Open(inFile string, password string) (Gjotser, error
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjots := makeGjotsRaw(kdfId)
+	gjots := makeGjotsRaw(kdfId, j.printers)
 	gjots.FromSequence(gjotsData)
 
 	j.jotser = gjots
@@ -59,8 +61,12 @@ func (j *jotsWebdavManager) Open(inFile string, password string) (Gjotser, error
 	return j.jotser, nil
 }
 
+func (j *jotsWebdavManager) SetPrinters(prts map[string]ValuePrinter) {
+	j.printers = prts
+}
+
 func (j *jotsWebdavManager) Init(pbkdfId string) (Gjotser, error) {
-	j.jotser = makeGjotsRaw(pbkdfId)
+	j.jotser = makeGjotsRaw(pbkdfId, j.printers)
 
 	return j.jotser, nil
 }

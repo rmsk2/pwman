@@ -14,15 +14,15 @@ import (
 	"strings"
 )
 
-type Obfucator struct {
+type Obfuscator struct {
 	envName  string
 	confName string
 	rePw     *regexp.Regexp
 	reUser   *regexp.Regexp
 }
 
-func NewObfuscator(e, c string) *Obfucator {
-	return &Obfucator{
+func NewObfuscator(e, c string) *Obfuscator {
+	return &Obfuscator{
 		envName:  e,
 		confName: c,
 		rePw:     regexp.MustCompile("^.*webdav_pw.+##obfuscated##:([0-9A-Fa-f]+).*$"),
@@ -36,7 +36,7 @@ func checkFileExists(filePath string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func (o *Obfucator) Obfuscate(userId string, password string) error {
+func (o *Obfuscator) Obfuscate(userId string, password string) error {
 	key, iv, err := o.calcObfKey()
 	if err != nil {
 		return fmt.Errorf("Unable to obfuscate WebDAV password: %v", err)
@@ -76,7 +76,7 @@ func (o *Obfucator) Obfuscate(userId string, password string) error {
 	return nil
 }
 
-func (o *Obfucator) matchPassword(line string) []byte {
+func (o *Obfuscator) matchPassword(line string) []byte {
 	matches := o.rePw.FindStringSubmatch(line)
 
 	if matches == nil {
@@ -96,7 +96,7 @@ func (o *Obfucator) matchPassword(line string) []byte {
 	return n
 }
 
-func (o *Obfucator) matchUser(line string) string {
+func (o *Obfuscator) matchUser(line string) string {
 	matches := o.reUser.FindStringSubmatch(line)
 
 	if matches == nil {
@@ -106,7 +106,7 @@ func (o *Obfucator) matchUser(line string) string {
 	return matches[1]
 }
 
-func (o *Obfucator) makeConfPath() (string, error) {
+func (o *Obfuscator) makeConfPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine home directory: %v", err)
@@ -115,7 +115,7 @@ func (o *Obfucator) makeConfPath() (string, error) {
 	return filepath.Join(homeDir, o.confName), nil
 }
 
-func (o *Obfucator) readRustpwmanConf() (string, []byte, error) {
+func (o *Obfuscator) readRustpwmanConf() (string, []byte, error) {
 	uid := ""
 	var password []byte = nil
 
@@ -154,7 +154,7 @@ func (o *Obfucator) readRustpwmanConf() (string, []byte, error) {
 	return uid, password, nil
 }
 
-func (o *Obfucator) calcObfKey() ([]byte, []byte, error) {
+func (o *Obfuscator) calcObfKey() ([]byte, []byte, error) {
 	obfString := os.Getenv(o.envName)
 
 	if obfString == "" {
@@ -168,7 +168,7 @@ func (o *Obfucator) calcObfKey() ([]byte, []byte, error) {
 	return raw[:16], raw[16:], nil
 }
 
-func (o *Obfucator) DeObfuscate() (string, string, error) {
+func (o *Obfuscator) DeObfuscate() (string, string, error) {
 	key, iv, err := o.calcObfKey()
 	if err != nil {
 		return "", "", fmt.Errorf("Unable to deobfuscate WebDAV password: %v", err)
