@@ -555,7 +555,7 @@ func main() {
 	subcommParser.AddCommand("clp", ctx.ClipboardCommand, "Adds/modifies an entry by setting its contents through the clipboard")
 	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
 	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
-	subcommParser.AddCommand("all", ctx.PrintAllCommand, "Print whole file contents")
+	subcommParser.AddCommand("all", ctx.PrintAllCommand, "Print whole file contents in plaintext")
 
 	subcommParser.Execute()
 }

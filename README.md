@@ -9,7 +9,7 @@ access a password manager file as described in the `rustpwman` documentation. Th
 
 ```
 The following commands are available:
-     all: Print whole file contents in plain text
+     all: Print whole file contents in plaintext
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
      del: Deletes an entry from a file
