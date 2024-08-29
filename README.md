@@ -8,7 +8,8 @@ The main component can be found in the `clitool` subdirectory. It implements a c
 access a password manager file as described in the `rustpwman` documentation. The following commands are provided.
 
 ```
-The following commands are available: 
+The following commands are available:
+     all: Print whole file contents in plain text
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
      del: Deletes an entry from a file

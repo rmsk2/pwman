@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.3"
+const VersionInfo = "1.2.4"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -255,6 +255,7 @@ func (c *CmdContext) ListCommand(args []string) error {
 func (c *CmdContext) PrintAllCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman all", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File holding password safe")
+	format := decFlags.String("f", "text", "Format specifier")
 
 	err := decFlags.Parse(args)
 	if err != nil {
@@ -271,9 +272,12 @@ func (c *CmdContext) PrintAllCommand(args []string) error {
 
 	return transact(man,
 		func(g fcrypt.Gjotser) error {
-			g.PrintAll()
+			err := g.PrintAllWithFormat(*format)
+			if err != nil {
+				err = fmt.Errorf("Unable to print file contents: %v", err)
+			}
 
-			return nil
+			return err
 
 		}, &safeName, false, c.client,
 	)
