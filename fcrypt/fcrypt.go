@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"pwman/printers"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -22,7 +23,6 @@ const ObfEnvVar = "RUSTPWMAN_OBFUSCATION"
 const ObfConfig = ".rustpwman"
 
 type AeadGen func(key []byte) (cipher.AEAD, error)
-type ValuePrinter func(key, value string) error
 
 var AeadGenerator AeadGen = GenAes256Gcm
 
@@ -75,7 +75,7 @@ type GjotsManager interface {
 	Open(inFile string, password string) (Gjotser, error)
 	Init(pbkdfId string) (Gjotser, error)
 	Close(fileName string, password string) error
-	SetPrinters(map[string]ValuePrinter)
+	SetPrinters(map[string]printers.ValuePrinter)
 }
 
 func GetGjotsManager(name string) GjotsManager {
@@ -88,8 +88,8 @@ func GetGjotsManager(name string) GjotsManager {
 		res = NewJotsFileManager()
 	}
 
-	printers := map[string]ValuePrinter{
-		DefaultPrt: PrintText,
+	printers := map[string]printers.ValuePrinter{
+		DefaultPrt: printers.NewTextPrinter(),
 	}
 
 	res.SetPrinters(printers)

@@ -3,17 +3,18 @@ package fcrypt
 import (
 	"encoding/json"
 	"fmt"
+	"pwman/printers"
 )
 
 type jotsFileManager struct {
 	jotser   *gjotsRaw
-	printers map[string]ValuePrinter
+	printers map[string]printers.ValuePrinter
 }
 
 func NewJotsFileManager() *jotsFileManager {
 	return &jotsFileManager{
 		jotser:   nil,
-		printers: map[string]ValuePrinter{},
+		printers: map[string]printers.ValuePrinter{},
 	}
 }
 
@@ -28,7 +29,7 @@ func (j *jotsFileManager) Open(inFile string, password string) (Gjotser, error) 
 	return j.jotser, nil
 }
 
-func (j *jotsFileManager) SetPrinters(prts map[string]ValuePrinter) {
+func (j *jotsFileManager) SetPrinters(prts map[string]printers.ValuePrinter) {
 	j.printers = prts
 }
 

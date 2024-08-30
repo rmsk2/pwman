@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"pwman/printers"
 )
 
 type WebDavCredGetter func() (string, string, error)
@@ -18,7 +19,7 @@ type jotsWebdavManager struct {
 	jotser   *gjotsRaw
 	dav      GjWebdav
 	pwGet    WebDavCredGetter
-	printers map[string]ValuePrinter
+	printers map[string]printers.ValuePrinter
 }
 
 func NewGjotsWebdav(d GjWebdav, g WebDavCredGetter) GjotsManager {
@@ -26,7 +27,7 @@ func NewGjotsWebdav(d GjWebdav, g WebDavCredGetter) GjotsManager {
 		jotser:   nil,
 		dav:      d,
 		pwGet:    g,
-		printers: map[string]ValuePrinter{},
+		printers: map[string]printers.ValuePrinter{},
 	}
 }
 
@@ -61,7 +62,7 @@ func (j *jotsWebdavManager) Open(inFile string, password string) (Gjotser, error
 	return j.jotser, nil
 }
 
-func (j *jotsWebdavManager) SetPrinters(prts map[string]ValuePrinter) {
+func (j *jotsWebdavManager) SetPrinters(prts map[string]printers.ValuePrinter) {
 	j.printers = prts
 }
 

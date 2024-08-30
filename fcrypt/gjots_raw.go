@@ -2,12 +2,10 @@ package fcrypt
 
 import (
 	"fmt"
+	"pwman/printers"
 	"sort"
-	"strings"
-	"unicode/utf8"
 )
 
-const Simple = "simple"
 const TxtPrt = "text"
 const DefaultPrt = TxtPrt
 
@@ -21,18 +19,16 @@ type gjotsEntry struct {
 type gjotsRaw struct {
 	EntryDict map[string]string
 	pbKdfId   string
-	printers  map[string]ValuePrinter
+	printers  map[string]printers.ValuePrinter
 }
 
 // makeGjotsRaw creates an empty GjotsFile data structure
-func makeGjotsRaw(kdfId string, prts map[string]ValuePrinter) *gjotsRaw {
+func makeGjotsRaw(kdfId string, prts map[string]printers.ValuePrinter) *gjotsRaw {
 	res := &gjotsRaw{
 		EntryDict: map[string]string{},
 		pbKdfId:   kdfId,
 		printers:  prts,
 	}
-
-	res.printers[Simple] = res.simplePrint
 
 	return res
 }
@@ -110,6 +106,8 @@ func (g *gjotsRaw) PrintAllWithFormat(format string) error {
 		return fmt.Errorf("Unknown printer format: '%s'", format)
 	}
 
+	printer.PrintHeader()
+
 	keys := make([]string, 0, len(g.EntryDict))
 	for i := range g.EntryDict {
 		keys = append(keys, i)
@@ -123,11 +121,13 @@ func (g *gjotsRaw) PrintAllWithFormat(format string) error {
 			return err
 		}
 
-		err = printer(i, value)
+		err = printer.PrintValue(i, value)
 		if err != nil {
 			return fmt.Errorf("Unable to print value: %v", err)
 		}
 	}
+
+	printer.PrintFooter()
 
 	return nil
 }
@@ -188,40 +188,4 @@ func (g *gjotsRaw) UpsertEntry(key string, data string) (bool, error) {
 	g.EntryDict[key] = data
 
 	return ok, nil
-}
-
-func PrintText(key string, value string) error {
-	lineLen := 80
-	stars := "***"
-	txtLen := utf8.RuneCountInString(key)
-	fillLen := lineLen - txtLen - 2*len(stars)
-	var fillerLeft string
-	var fillerRight string
-
-	if fillLen <= 0 {
-		fillerLeft = " "
-		fillerRight = " "
-	} else {
-		if fillLen%2 == 0 {
-			fillerLeft = strings.Repeat(" ", fillLen/2)
-			fillerRight = strings.Repeat(" ", fillLen/2)
-		} else {
-			fillerLeft = strings.Repeat(" ", fillLen/2)
-			fillerRight = strings.Repeat(" ", fillLen/2+1)
-		}
-	}
-
-	title := fmt.Sprintf("%s%s%s%s%s", stars, fillerLeft, key, fillerRight, stars)
-	e := strings.Repeat(" ", utf8.RuneCountInString(title)-2*len(stars))
-	empty := fmt.Sprintf("%s%s%s", stars, e, stars)
-	bar := strings.Repeat("*", utf8.RuneCountInString(title))
-	fmt.Println(bar)
-	fmt.Println(empty)
-	fmt.Println(title)
-	fmt.Println(empty)
-	fmt.Println(bar)
-	fmt.Println(value)
-	fmt.Println()
-
-	return nil
 }
