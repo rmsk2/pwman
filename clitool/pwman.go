@@ -475,7 +475,7 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman clp", flag.ContinueOnError)
 	inFile := putFlags.String("i", "", "File holding password safe")
 	key := putFlags.String("k", "", "Key of entry to modify")
-	clipCommand := putFlags.String("c", "", "Command to execute in order to retrieve the clipboard")
+	clipCommand := putFlags.String("c", "", "Command to execute in order to retrieve the clipboard contents")
 
 	err := putFlags.Parse(args)
 	if err != nil {

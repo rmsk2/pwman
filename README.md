@@ -59,9 +59,18 @@ ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password d
 `pwman` is also able to access files containing encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to exist 
 in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
 way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
-`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`.
+`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. The `all` command is intended 
+to create a plaintext offline backup of all data in a format that is human readable. Here an overview of the environment variables that `pwman`
+uses
+
+|Name | Intended use |
+|-|-
+|`PWMANFILE`| File name or WebDAV address of preferred password file |
+|`PWMANCIPHER`| If present then the value `AES192` selects AES-192 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
+|`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
+|`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
 
 # Building
 
-There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windwos) which allow building the two binaries mentioned 
+There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windows) which allow building the two binaries mentioned 
 above. 
