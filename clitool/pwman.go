@@ -349,6 +349,44 @@ func (c *CmdContext) DeleteCommand(args []string) error {
 	)
 }
 
+// BackupCommand allows to retrieve password data and stores it locally for backup purposes
+func (c *CmdContext) BackupCommand(args []string) error {
+	renFlags := flag.NewFlagSet("pwman bkp", flag.ContinueOnError)
+	inFile := renFlags.String("i", "", "File holding password safe")
+	outFile := renFlags.String("o", "", "File to store backup")
+
+	err := renFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	outName := getBackupFileName(outFile)
+
+	if outName == "" {
+		return fmt.Errorf("No output file specified")
+	}
+
+	man := c.jotsManagerCreator(safeName)
+
+	data, err := man.GetRawData(safeName)
+	if err != nil {
+		return fmt.Errorf("Unable to create backup: %v", err)
+	}
+
+	err = os.WriteFile(outName, data, 0o600)
+	if err != nil {
+		return fmt.Errorf("Unable to create backup: %v", err)
+	}
+
+	return nil
+}
+
 // RenameCommand allows to rename an existing entry
 func (c *CmdContext) RenameCommand(args []string) error {
 	renFlags := flag.NewFlagSet("pwman ren", flag.ContinueOnError)
@@ -556,6 +594,7 @@ func main() {
 	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
 	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
 	subcommParser.AddCommand("all", ctx.PrintAllCommand, "Print whole file contents in plaintext")
+	subcommParser.AddCommand("bkp", ctx.BackupCommand, "Store a backup of the given password safe")
 
 	subcommParser.Execute()
 }

@@ -73,6 +73,7 @@ type Gjotser interface {
 
 type GjotsManager interface {
 	Open(inFile string, password string) (Gjotser, error)
+	GetRawData(inFile string) ([]byte, error)
 	Init(pbkdfId string) (Gjotser, error)
 	Close(fileName string, password string) error
 	SetPrinters(map[string]printers.ValuePrinter)

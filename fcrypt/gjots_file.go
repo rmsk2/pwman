@@ -3,6 +3,7 @@ package fcrypt
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"pwman/printers"
 )
 
@@ -41,6 +42,15 @@ func (j *jotsFileManager) Init(pbkdfId string) (Gjotser, error) {
 	j.jotser = makeGjotsRaw(pbkdfId, j.printers)
 
 	return j.jotser, nil
+}
+
+func (j *jotsFileManager) GetRawData(inFile string) ([]byte, error) {
+	encBytes, err := os.ReadFile(inFile)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving file: %v", err)
+	}
+
+	return encBytes, nil
 }
 
 // makeGjotsFromFile loads and decrypts a file

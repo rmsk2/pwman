@@ -8,8 +8,9 @@ The main component can be found in the `clitool` subdirectory. It implements a c
 access a password manager file as described in the `rustpwman` documentation. The following commands are provided.
 
 ```
-The following commands are available:
+The following commands are available: 
      all: Print whole file contents in plaintext
+     bkp: Store a backup of the given password safe
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
      del: Deletes an entry from a file
@@ -60,14 +61,15 @@ ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password d
 in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
 way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
 `clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. The `all` command is intended 
-to create a plaintext offline backup of all data in a format that is human readable. Here an overview of the environment variables that `pwman`
-uses
+to create a plaintext offline backup of all data in a format that is human readable. The `bkp` command can be used to store a local backup
+of the password safe without explcitly mounting a WebDAV share as a local drive. Here an overview of the environment variables that `pwman` uses
 
 |Name | Intended use |
 |-|-
 |`PWMANFILE`| File name or WebDAV address of preferred password file |
 |`PWMANCIPHER`| If present then the value `AES192` selects AES-192 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
 |`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
+|`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
 |`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
 
 # Building

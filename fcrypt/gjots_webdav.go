@@ -31,6 +31,20 @@ func NewGjotsWebdav(d GjWebdav, g WebDavCredGetter) GjotsManager {
 	}
 }
 
+func (j *jotsWebdavManager) GetRawData(inFile string) ([]byte, error) {
+	uid, wbeDavPw, err := j.pwGet()
+	if err != nil {
+		return nil, fmt.Errorf("Unable to retrieve WebDAV password safe: %v", err)
+	}
+
+	encBytes, err := j.dav.ReadFile(uid, wbeDavPw, inFile)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to retrieve WebDAV password safe: %v", err)
+	}
+
+	return encBytes, nil
+}
+
 func (j *jotsWebdavManager) Open(inFile string, password string) (Gjotser, error) {
 	uid, wbeDavPw, err := j.pwGet()
 	if err != nil {
