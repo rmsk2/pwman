@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.5"
+const VersionInfo = "1.2.6"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -246,38 +246,6 @@ func (c *CmdContext) ListCommand(args []string) error {
 			g.PrintKeyList()
 
 			return nil
-
-		}, &safeName, false, c.client,
-	)
-}
-
-// PrintAllCommand decrypts a file and prints a list of all keys and values to stdout
-func (c *CmdContext) PrintAllCommand(args []string) error {
-	decFlags := flag.NewFlagSet("pwman all", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File holding password safe")
-	format := decFlags.String("f", "text", "Format specifier")
-
-	err := decFlags.Parse(args)
-	if err != nil {
-		os.Exit(42)
-	}
-
-	safeName := getPwSafeFileName(inFile)
-
-	if safeName == "" {
-		return fmt.Errorf("No input file specified")
-	}
-
-	man := c.jotsManagerCreator(safeName)
-
-	return transact(man,
-		func(g fcrypt.Gjotser) error {
-			err := g.PrintAllWithFormat(*format)
-			if err != nil {
-				err = fmt.Errorf("Unable to print file contents: %v", err)
-			}
-
-			return err
 
 		}, &safeName, false, c.client,
 	)
@@ -593,7 +561,6 @@ func main() {
 	subcommParser.AddCommand("clp", ctx.ClipboardCommand, "Adds/modifies an entry by setting its contents through the clipboard")
 	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
 	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
-	subcommParser.AddCommand("all", ctx.PrintAllCommand, "Print whole file contents in plaintext")
 	subcommParser.AddCommand("bkp", ctx.BackupCommand, "Store a backup of the given password safe")
 
 	subcommParser.Execute()

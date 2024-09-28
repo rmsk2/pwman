@@ -5,7 +5,7 @@ import (
 )
 
 func TestGjots1(t *testing.T) {
-	gj := makeGjotsRaw(PbKdfSha256, nil)
+	gj := makeGjotsRaw(PbKdfSha256)
 
 	_, err := gj.GetEntry("test1")
 	if err == nil {
@@ -59,7 +59,7 @@ func TestGjots1(t *testing.T) {
 }
 
 func TestGjots2(t *testing.T) {
-	gj := makeGjotsRaw(PbKdfSha256, nil)
+	gj := makeGjotsRaw(PbKdfSha256)
 
 	entryFound, err := gj.UpsertEntry("test1", "secret password")
 	if err != nil {

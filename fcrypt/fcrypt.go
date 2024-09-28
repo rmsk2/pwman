@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"pwman/printers"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -62,8 +61,6 @@ func GenChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
 type Gjotser interface {
 	PrintKeyList() error
 	PrintEntry(key string) error
-	PrintAll() error
-	PrintAllWithFormat(format string) error
 	GetKeyList() ([]string, error)
 	GetEntry(key string) (string, error)
 	DeleteEntry(key string) error
@@ -76,7 +73,6 @@ type GjotsManager interface {
 	GetRawData(inFile string) ([]byte, error)
 	Init(pbkdfId string) (Gjotser, error)
 	Close(fileName string, password string) error
-	SetPrinters(map[string]printers.ValuePrinter)
 }
 
 func GetGjotsManager(name string) GjotsManager {
@@ -88,12 +84,6 @@ func GetGjotsManager(name string) GjotsManager {
 	} else {
 		res = NewJotsFileManager()
 	}
-
-	printers := map[string]printers.ValuePrinter{
-		DefaultPrt: printers.NewTextPrinter(),
-	}
-
-	res.SetPrinters(printers)
 
 	return res
 }

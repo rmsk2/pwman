@@ -2,7 +2,6 @@ package fcrypt
 
 import (
 	"fmt"
-	"pwman/printers"
 	"sort"
 )
 
@@ -19,15 +18,13 @@ type gjotsEntry struct {
 type gjotsRaw struct {
 	EntryDict map[string]string
 	pbKdfId   string
-	printers  map[string]printers.ValuePrinter
 }
 
 // makeGjotsRaw creates an empty GjotsFile data structure
-func makeGjotsRaw(kdfId string, prts map[string]printers.ValuePrinter) *gjotsRaw {
+func makeGjotsRaw(kdfId string) *gjotsRaw {
 	res := &gjotsRaw{
 		EntryDict: map[string]string{},
 		pbKdfId:   kdfId,
-		printers:  prts,
 	}
 
 	return res
@@ -98,43 +95,6 @@ func (g *gjotsRaw) GetKeyList() ([]string, error) {
 	sort.Strings(keys)
 
 	return keys, nil
-}
-
-func (g *gjotsRaw) PrintAllWithFormat(format string) error {
-	printer, ok := g.printers[format]
-	if !ok {
-		return fmt.Errorf("Unknown printer format: '%s'", format)
-	}
-
-	printer.PrintHeader()
-
-	keys := make([]string, 0, len(g.EntryDict))
-	for i := range g.EntryDict {
-		keys = append(keys, i)
-	}
-
-	sort.Strings(keys)
-
-	for _, i := range keys {
-		value, err := g.GetEntry(i)
-		if err != nil {
-			return err
-		}
-
-		err = printer.PrintValue(i, value)
-		if err != nil {
-			return fmt.Errorf("Unable to print value: %v", err)
-		}
-	}
-
-	printer.PrintFooter()
-
-	return nil
-}
-
-// PrintAll prints the whole contents of the password file
-func (g *gjotsRaw) PrintAll() error {
-	return g.PrintAllWithFormat(DefaultPrt)
 }
 
 // GetEntry returns the data identified by key

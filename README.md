@@ -9,7 +9,6 @@ access a password manager file as described in the `rustpwman` documentation. Th
 
 ```
 The following commands are available: 
-     all: Print whole file contents in plaintext
      bkp: Store a backup of the given password safe
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
@@ -60,9 +59,9 @@ ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password d
 `pwman` is also able to access files containing encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to exist 
 in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
 way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
-`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. The `all` command is intended 
-to create a plaintext offline backup of all data in a format that is human readable. The `bkp` command can be used to store a local backup
-of the password safe without explcitly mounting a WebDAV share as a local drive. Here an overview of the environment variables that `pwman` uses
+`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. The `bkp` command can be used 
+to store a local backup of the password safe without explcitly mounting a WebDAV share as a local drive. Here an overview of the environment 
+variables that `pwman` uses
 
 |Name | Intended use |
 |-|-

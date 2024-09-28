@@ -4,18 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"pwman/printers"
 )
 
 type jotsFileManager struct {
-	jotser   *gjotsRaw
-	printers map[string]printers.ValuePrinter
+	jotser *gjotsRaw
 }
 
 func NewJotsFileManager() *jotsFileManager {
 	return &jotsFileManager{
-		jotser:   nil,
-		printers: map[string]printers.ValuePrinter{},
+		jotser: nil,
 	}
 }
 
@@ -30,16 +27,12 @@ func (j *jotsFileManager) Open(inFile string, password string) (Gjotser, error) 
 	return j.jotser, nil
 }
 
-func (j *jotsFileManager) SetPrinters(prts map[string]printers.ValuePrinter) {
-	j.printers = prts
-}
-
 func (j *jotsFileManager) Close(inFile string, password string) error {
 	return j.saveGjotsToFile(inFile, password)
 }
 
 func (j *jotsFileManager) Init(pbkdfId string) (Gjotser, error) {
-	j.jotser = makeGjotsRaw(pbkdfId, j.printers)
+	j.jotser = makeGjotsRaw(pbkdfId)
 
 	return j.jotser, nil
 }
@@ -67,7 +60,7 @@ func (j *jotsFileManager) makeGjotsFromFile(inFile string, password string) (*gj
 		return nil, fmt.Errorf("Unable to load encrypted data from file '%s': %v", inFile, err)
 	}
 
-	gjotsFile := makeGjotsRaw(kdfId, j.printers)
+	gjotsFile := makeGjotsRaw(kdfId)
 	gjotsFile.FromSequence(gjotsData)
 
 	return gjotsFile, nil
