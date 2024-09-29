@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.6"
+const VersionInfo = "1.2.7"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -538,9 +538,13 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 
 func main() {
 	if v := os.Getenv("PWMANCIPHER"); v != "" {
-		if v == "AES192" {
+		switch v {
+		case "AES192":
 			fcrypt.AeadGenerator = fcrypt.GenAes192Gcm
-		} else {
+		case "AES256":
+			// Strictly speaking this is unneccessary but makes it clear what is set
+			fcrypt.AeadGenerator = fcrypt.GenAes256Gcm
+		default:
 			fcrypt.AeadGenerator = fcrypt.GenChaCha20Poly1305
 		}
 	}

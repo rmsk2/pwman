@@ -66,7 +66,7 @@ variables that `pwman` uses
 |Name | Intended use |
 |-|-
 |`PWMANFILE`| File name or WebDAV address of preferred password file |
-|`PWMANCIPHER`| If present then the value `AES192` selects AES-192 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
+|`PWMANCIPHER`| If present then the values `AES192` and `AES256` select AES-192 GCM or AES-256 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
 |`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
 |`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
 |`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
