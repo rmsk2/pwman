@@ -48,13 +48,20 @@ func MakePasswordName(fileName string) (string, error) {
 
 // GetSecurePassword reads a password from the console
 func GetSecurePassword(msg string) (string, error) {
+	return GetSecurePasswordExt(msg, true)
+}
+
+// GetSecurePasswordExt reads a password from the console
+func GetSecurePasswordExt(msg string, newLine bool) (string, error) {
 	print(msg) // print to stderr instead of stdout
 	password, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err
 	}
 
-	println()
+	if newLine {
+		println()
+	}
 
 	return string(password), nil
 }
@@ -66,7 +73,7 @@ func GetSecurePasswordVerified(msg1, msg2 string) (string, error) {
 		return "", fmt.Errorf("Unable to read password: %v", err)
 	}
 
-	println()
+	//println()
 
 	password2, err := GetSecurePassword(msg2)
 	if err != nil {

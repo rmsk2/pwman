@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.7"
+const VersionInfo = "1.2.8"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -166,7 +166,7 @@ func (c *CmdContext) PwdCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	password, err := GetSecurePassword(enterPwText)
+	password, err := GetSecurePasswordExt(enterPwText, false)
 	if err != nil {
 		return fmt.Errorf("Unable to verify password: %v", err)
 	}
