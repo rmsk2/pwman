@@ -1,6 +1,7 @@
 //go:build darwin || linux
 // +build darwin linux
 
+// Package domainsock implements communication through a UNIX domain socket on UNIX
 package domainsock
 
 import (
@@ -22,7 +23,7 @@ func MakeUDSAddress() string {
 		panic(err)
 	}
 
-	return fmt.Sprintf(PwUDS, user.Name)
+	return fmt.Sprintf(PwUDS, user.Username)
 }
 
 // NewUDSTransactor returns a transactorfunc that connects via Unix domain sockets
