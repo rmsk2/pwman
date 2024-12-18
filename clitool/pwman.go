@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.8"
+const VersionInfo = "1.2.9"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
