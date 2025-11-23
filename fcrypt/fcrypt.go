@@ -60,7 +60,7 @@ func GenChaCha20Poly1305(key []byte) (cipher.AEAD, error) {
 // Gjotser describes a thing that is in essence an encrypted key value store
 type Gjotser interface {
 	PrintKeyList() error
-	PrintEntry(key string) error
+	PrintEntry(key string, verbose bool) error
 	GetKeyList() ([]string, error)
 	GetEntry(key string) (string, error)
 	DeleteEntry(key string) error

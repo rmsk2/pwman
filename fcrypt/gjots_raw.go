@@ -74,13 +74,17 @@ func (g *gjotsRaw) simplePrint(key, value string) error {
 }
 
 // PrintEntry searches for an entry and if found prints it
-func (g *gjotsRaw) PrintEntry(key string) error {
+func (g *gjotsRaw) PrintEntry(key string, verbose bool) error {
 	value, err := g.GetEntry(key)
 	if err != nil {
 		return err
 	}
 
-	_ = g.simplePrint(key, value)
+	if !verbose {
+		_ = g.simplePrint(key, value)
+	} else {
+		fmt.Print(value)
+	}
 
 	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"pwman/fcrypt"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-const VersionInfo = "1.2.9"
+const VersionInfo = "1.2.10"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -256,6 +257,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File holding password safe")
 	key := decFlags.String("k", "", "Key to search")
+	verbose := decFlags.Bool("verbose", false, "If specified output is not formatted")
 
 	err := decFlags.Parse(args)
 	if err != nil {
@@ -276,7 +278,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 
 	return transact(man,
 		func(g fcrypt.Gjotser) error {
-			err = g.PrintEntry(*key)
+			err = g.PrintEntry(*key, *verbose)
 			if err != nil {
 				return err
 			}
@@ -396,7 +398,8 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman put", flag.ContinueOnError)
 	inFile := putFlags.String("i", "", "File holding password safe")
 	key := putFlags.String("k", "", "Key of entry to modify")
-	dataFile := putFlags.String("v", "", "File containing value to associate with path/name")
+	dataFile := putFlags.String("v", "", "File containing value to associate with path/name. Omit this to read from stdin")
+	var rawValue []byte
 
 	err := putFlags.Parse(args)
 	if err != nil {
@@ -413,13 +416,16 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 		return fmt.Errorf("No key specified")
 	}
 
-	if *dataFile == "" {
-		return fmt.Errorf("No value file name specified")
-	}
-
-	rawValue, err := os.ReadFile(*dataFile)
-	if err != nil {
-		return fmt.Errorf("Unable to load value data from '%s': %v", *dataFile, err)
+	if *dataFile != "" {
+		rawValue, err = os.ReadFile(*dataFile)
+		if err != nil {
+			return fmt.Errorf("Unable to load value data from '%s': %v", *dataFile, err)
+		}
+	} else {
+		rawValue, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			return fmt.Errorf("Unable to load value data from stdin: %v", err)
+		}
 	}
 
 	man := c.jotsManagerCreator(safeName)
