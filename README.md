@@ -1,8 +1,8 @@
 # pwman
 
 This program is my plan B if I lose interest in maintaining [`rustpwman`](https://github.com/rmsk2/rustpwman). This could happen 
-if I either lose interest in Rust programming or if at some point in time it becomes too tedious to migrate to newer versions of the 
-over 200 dependencies that `rustpwman` has accumulated. Files created with `pwman` can be used with `rustpwman` and vice versa.
+if I either lose interest in Rust programming or if at some point in time it becomes too tedious to migrate to newer versions of the  
+~~about 200~~ 340 dependencies that `rustpwman` has accumulated. Files created with `pwman` can be used with `rustpwman` and vice versa.
 
 The main component can be found in the `clitool` subdirectory. It implements a command line interface that allows to 
 access a password manager file as described in the `rustpwman` documentation. The following commands are provided.
