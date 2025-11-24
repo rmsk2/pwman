@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image/png"
 	"io"
 	"os"
 	"os/exec"
@@ -10,6 +11,9 @@ import (
 	"pwman/pwsrvbase"
 	"pwman/pwsrvbase/domainsock"
 	"strings"
+
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 )
 
 const VersionInfo = "1.2.10"
@@ -284,6 +288,99 @@ func (c *CmdContext) GetCommand(args []string) error {
 			}
 
 			return nil
+
+		}, &safeName, false, c.client,
+	)
+}
+
+func createQrCode(data string, outFile string, size int) error {
+	qrCode, err := qr.Encode(data, qr.M, qr.Auto)
+	if err != nil {
+		return err
+	}
+
+	qrCode, err = barcode.Scale(qrCode, size, size)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(outFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return png.Encode(file, qrCode)
+}
+
+func startViewer(viewer string, outFile string) error {
+	params := strings.Split(viewer, " ")
+	sanitzedParams := []string{}
+
+	for _, j := range params {
+		if j != "" {
+			sanitzedParams = append(sanitzedParams, j)
+		}
+	}
+
+	sanitzedParams = append(sanitzedParams, outFile)
+	cmd := exec.Command(sanitzedParams[0], sanitzedParams[1:]...)
+
+	return cmd.Start()
+}
+
+// QrCodeCommand decrypts and searches in a file and writes the result as a QR code to a file
+func (c *CmdContext) QrCodeCommand(args []string) error {
+	qrcFlags := flag.NewFlagSet("pwman qrc", flag.ContinueOnError)
+	inFile := qrcFlags.String("i", "", "File holding password safe")
+	key := qrcFlags.String("k", "", "Key to search")
+	outFile := qrcFlags.String("o", "", "File to hold QR-Code")
+	size := qrcFlags.Int("size", 250, "QR code size in pixel")
+	noViewer := qrcFlags.Bool("noviewer", false, "If present: Do not start viewer")
+
+	err := qrcFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	if *key == "" {
+		return fmt.Errorf("No key specified")
+	}
+
+	if *outFile == "" {
+		return fmt.Errorf("No output file specified")
+	}
+
+	if *size <= 0 {
+		return fmt.Errorf("Unusable size value")
+	}
+
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
+		func(g fcrypt.Gjotser) error {
+			data, err := g.GetEntry(*key)
+			if err != nil {
+				return err
+			}
+
+			err = createQrCode(data, *outFile, *size)
+			if err != nil {
+				return err
+			}
+
+			viewer := os.Getenv(envVarViewer)
+			if (viewer == "") || *noViewer {
+				return nil
+			}
+
+			return startViewer(viewer, *outFile)
 
 		}, &safeName, false, c.client,
 	)
@@ -572,6 +669,7 @@ func main() {
 	subcommParser.AddCommand("ver", ctx.GetVersion, "Print version information")
 	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
 	subcommParser.AddCommand("bkp", ctx.BackupCommand, "Store a backup of the given password safe")
+	subcommParser.AddCommand("qrc", ctx.QrCodeCommand, "Create a QR code from an entry")
 
 	subcommParser.Execute()
 }

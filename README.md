@@ -20,6 +20,7 @@ The following commands are available:
      obf: Obfuscate WebDAV password and create corresponding config
      put: Adds/modifies an entry by setting its contents through a file
      pwd: Checks the password and transfers it to pwserv
+     qrc: Create a QR code from an entry
      ren: Renames an entry in a file
      rst: Deletes the password from pwserv
      ver: Print version information
@@ -70,6 +71,7 @@ variables that `pwman` uses
 |`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
 |`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
 |`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
+|`RUSTPWMAN_VIEWER`| Prefix for the command to start an image viewer to which the file name of the image (containing a QR code) is appended |
 
 # Building
 

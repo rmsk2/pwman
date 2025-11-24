@@ -19,6 +19,7 @@ const reenterPwText = "Please reenter password: "
 const envVarPwmanFile = "PWMANFILE"
 const envVarPwmanClip = "PWMANCLIP"
 const envVarPwmanBkp = "PWMANBKP"
+const envVarViewer = "RUSTPWMAN_VIEWER"
 
 type procFunc func(g fcrypt.Gjotser) error
 
