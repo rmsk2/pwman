@@ -80,7 +80,7 @@ func GetGjotsManager(name string) GjotsManager {
 
 	if strings.HasPrefix(name, "https://") {
 		deobfuscator := NewObfuscator(ObfEnvVar, ObfConfig)
-		res = NewGjotsWebdav(NewWebDavHelper(), deobfuscator.DeObfuscate)
+		res = NewGjotsWebdav(NewSimpleWebDav(), deobfuscator.DeObfuscate)
 	} else {
 		res = NewJotsFileManager()
 	}

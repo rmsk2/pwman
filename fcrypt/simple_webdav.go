@@ -37,8 +37,8 @@ func (s *simpleWebDav) WriteFile(data []byte, userId string, password string, fi
 		return err
 	}
 
-	if (resp.StatusCode < 200) && (resp.StatusCode >= 300) {
-		return fmt.Errorf("HTTP error: %d", resp.StatusCode)
+	if (resp.StatusCode < 200) || (resp.StatusCode >= 300) {
+		return fmt.Errorf("Writing file failed. HTTP error: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -65,11 +65,9 @@ func (s *simpleWebDav) ReadFile(userId string, password string, fileName string)
 		return nil, err
 	}
 
-	if (resp.StatusCode < 200) && (resp.StatusCode >= 300) {
-		return nil, fmt.Errorf("HTTP error: %d", resp.StatusCode)
+	if (resp.StatusCode < 200) || (resp.StatusCode >= 300) {
+		return nil, fmt.Errorf("Reading file failed: HTTP error: %d", resp.StatusCode)
 	}
-
-	//ToDo: Check for WebDAV errors
 
 	return data, nil
 }
