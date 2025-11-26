@@ -46,23 +46,27 @@ Interestingly enough Windows implements UNIX domain sockets since around 2017/20
 `windomainsock.go`. UNIX domain sockets not only allow additional access control but on Windows they are also noticebly faster than 
 TCP over the loopback device.
 
-I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remeber to start it before using `clitool`. Another way
+I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remember to start it before using `clitool`. Another way
 to simplify calls to `clitool` is to set the environment variable `PWMANFILE` to the file system location of the password safe file. If this
 variable is set and `-i` is not specified then `clitool` uses the value from the environment. If `-i` is present this value takes precedence.
 
-If you want to be able to replace the contents of an entry by the contents of the clipboard through the `clp` command you can set the environment
-variable `PWMANCLIP` to the value you would give to the `-c` option. If the `-c` option is present it takes precedence over the value of the
+The `clp` command allows you to replace the contents of an entry by the contents of the clipboard or to create a new entry holding the contents 
+of the clipboard. By setting the environment variable `PWMANCLIP` to the value you would give to the `-c` option you can specify a default for
+that value. It is then used whenever the `-c` option is omitted. If the `-c` option is present it takes precedence over the value of the 
 environment variable.
 
-If you set the environment variable `PWMANCIPHER` to the value `AES192` then `pwman` will use AES-192 GCM any other value makes `pwman` using
-ChaCha20Poly1305 instead of AES-256-GCM for en- and decryption of the password data.
+If you set the environment variable `PWMANCIPHER` to the value `AES192` or `AES256` then `pwman` will use AES-192 or AES-256 GCM for en- and
+decryption of the password data. Any other value makes `pwman` using ChaCha20Poly1305.
 
 `pwman` is also able to access files containing encrypted password data via WebDAV. For this to work a config file `.rustpwman` has to exist 
 in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
 way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
-`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. The `bkp` command can be used 
-to store a local backup of the password safe without explcitly mounting a WebDAV share as a local drive. Here an overview of the environment 
-variables that `pwman` uses
+`clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. 
+
+The `bkp` command can be used  to store a local backup of any password safe. When the password safe is stored at a WebDAV location `bkp` allows
+you to perform the backup without first explcitly mounting the WebDAV share as a local drive.
+
+Here an overview of the environment variables that `pwman` uses
 
 |Name | Intended use |
 |-|-
