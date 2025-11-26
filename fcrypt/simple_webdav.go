@@ -14,6 +14,21 @@ func NewSimpleWebDav() GjWebdav {
 	return &simpleWebDav{}
 }
 
+func evalHttpError(statusCode int) error {
+	if (statusCode >= 200) && (statusCode < 300) {
+		return nil
+	}
+
+	switch statusCode {
+	case 404:
+		return fmt.Errorf("File not found (HTTP 404)")
+	case 401:
+		return fmt.Errorf("Unauthorized (HTTP 401)")
+	default:
+		return fmt.Errorf("HTTP error %d", statusCode)
+	}
+}
+
 func (s *simpleWebDav) WriteFile(data []byte, userId string, password string, fileName string) error {
 	client := &http.Client{}
 
@@ -37,11 +52,7 @@ func (s *simpleWebDav) WriteFile(data []byte, userId string, password string, fi
 		return err
 	}
 
-	if (resp.StatusCode < 200) || (resp.StatusCode >= 300) {
-		return fmt.Errorf("Writing file failed. HTTP error: %d", resp.StatusCode)
-	}
-
-	return nil
+	return evalHttpError(resp.StatusCode)
 }
 
 func (s *simpleWebDav) ReadFile(userId string, password string, fileName string) ([]byte, error) {
@@ -65,8 +76,9 @@ func (s *simpleWebDav) ReadFile(userId string, password string, fileName string)
 		return nil, err
 	}
 
-	if (resp.StatusCode < 200) || (resp.StatusCode >= 300) {
-		return nil, fmt.Errorf("Reading file failed: HTTP error: %d", resp.StatusCode)
+	err = evalHttpError(resp.StatusCode)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
