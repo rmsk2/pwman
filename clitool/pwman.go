@@ -10,6 +10,7 @@ import (
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
 	"pwman/pwsrvbase/domainsock"
+	"runtime/debug"
 	"strings"
 
 	"github.com/boombuler/barcode"
@@ -546,8 +547,34 @@ func (c *CmdContext) UpsertCommand(args []string) error {
 	)
 }
 
+func getInfo() (string, string) {
+	var hash string
+	var time string
+
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, setting := range info.Settings {
+			if setting.Key == "vcs.revision" {
+				hash = setting.Value
+				continue
+			}
+
+			if setting.Key == "vcs.time" {
+				time = setting.Value
+				continue
+			}
+		}
+	}
+
+	return hash, time
+}
+
 func (c *CmdContext) GetVersion(args []string) error {
-	fmt.Println(VersionInfo)
+	commitHash, commitTime := getInfo()
+	fmt.Println("PWMAN clitool")
+	fmt.Printf("Version: %s\n", VersionInfo)
+	fmt.Printf("Commit hash: %s\n", commitHash)
+	fmt.Printf("Commit time: %s\n", commitTime)
+	fmt.Println("Written by Martin Grap (rmsk2@gmx.de) in 2020-2025")
 	return nil
 }
 
