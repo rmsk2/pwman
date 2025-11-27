@@ -17,7 +17,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.3.0"
+const VersionInfo = "1.3.1"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -69,6 +69,15 @@ func (c *CmdContext) InitCommand(args []string) error {
 	}
 
 	man := c.jotsManagerCreator(*outFile)
+
+	fileExists, err := man.FileExists(*outFile)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize password safe: %v", err)
+	}
+
+	if fileExists {
+		return fmt.Errorf("File already exists. Will not overwrite!")
+	}
 
 	_, err = man.Init(*pbkfId)
 	if err != nil {

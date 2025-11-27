@@ -2,6 +2,7 @@ package fcrypt
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -25,6 +26,19 @@ func (j *jotsFileManager) Open(inFile string, password string) (Gjotser, error) 
 	j.jotser = h
 
 	return j.jotser, nil
+}
+
+func (j *jotsFileManager) FileExists(fileName string) (bool, error) {
+	_, err := os.Stat(fileName)
+	if err == nil {
+		return true, nil
+	}
+
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+
+	return true, err
 }
 
 func (j *jotsFileManager) Close(inFile string, password string) error {

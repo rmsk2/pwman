@@ -29,6 +29,47 @@ func evalHttpError(statusCode int) error {
 	}
 }
 
+func (s *simpleWebDav) FileExists(userId string, password string, fileName string) (bool, error) {
+	body := `<?xml version="1.0" encoding="utf-8" ?>
+		<D:propfind xmlns:D="DAV:">
+			<D:prop><D:getcontentlength/></D:prop>
+		</D:propfind>
+	`
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest("PROPFIND", fileName, bytes.NewReader([]byte(body)))
+	if err != nil {
+		return false, err
+	}
+
+	req.SetBasicAuth(userId, password)
+	req.Header.Set("depth", "0")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer func() { resp.Body.Close() }()
+
+	// ignore result
+	_, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	err = evalHttpError(resp.StatusCode)
+	if err != nil {
+		if resp.StatusCode == 404 {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
 func (s *simpleWebDav) WriteFile(data []byte, userId string, password string, fileName string) error {
 	client := &http.Client{}
 

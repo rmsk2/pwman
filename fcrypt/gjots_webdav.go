@@ -12,6 +12,7 @@ type WebDavCredGetter func() (string, string, error)
 type GjWebdav interface {
 	WriteFile(data []byte, userId string, password string, fileName string) error
 	ReadFile(userId string, password string, fileName string) ([]byte, error)
+	FileExists(userId string, password string, fileName string) (bool, error)
 }
 
 type jotsWebdavManager struct {
@@ -40,6 +41,15 @@ func (j *jotsWebdavManager) GetRawData(inFile string) ([]byte, error) {
 	}
 
 	return encBytes, nil
+}
+
+func (j *jotsWebdavManager) FileExists(fileName string) (bool, error) {
+	uid, webDavPw, err := j.pwGet()
+	if err != nil {
+		return true, fmt.Errorf("Unable to open WebDAV password safe: %v", err)
+	}
+
+	return j.dav.FileExists(uid, webDavPw, fileName)
 }
 
 func (j *jotsWebdavManager) Open(inFile string, password string) (Gjotser, error) {

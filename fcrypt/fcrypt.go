@@ -72,6 +72,7 @@ type GjotsManager interface {
 	Open(inFile string, password string) (Gjotser, error)
 	GetRawData(inFile string) ([]byte, error)
 	Init(pbkdfId string) (Gjotser, error)
+	FileExists(fileName string) (bool, error)
 	Close(fileName string, password string) error
 }
 
