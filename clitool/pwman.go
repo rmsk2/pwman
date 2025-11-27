@@ -63,11 +63,6 @@ func (c *CmdContext) InitCommand(args []string) error {
 		return fmt.Errorf("Unknown PBKDF: %s", *pbkfId)
 	}
 
-	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize password safe: %v", err)
-	}
-
 	man := c.jotsManagerCreator(*outFile)
 
 	fileExists, err := man.FileExists(*outFile)
@@ -77,6 +72,11 @@ func (c *CmdContext) InitCommand(args []string) error {
 
 	if fileExists {
 		return fmt.Errorf("File already exists. Will not overwrite!")
+	}
+
+	password, err := GetSecurePasswordVerified(enterPwText, reenterPwText)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize password safe: %v", err)
 	}
 
 	_, err = man.Init(*pbkfId)
