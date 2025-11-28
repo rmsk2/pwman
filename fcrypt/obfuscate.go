@@ -107,6 +107,11 @@ func (o *Obfuscator) matchUser(line string) string {
 }
 
 func (o *Obfuscator) makeConfPath() (string, error) {
+	confFile, ok := os.LookupEnv(envVarConfig)
+	if ok {
+		return confFile, nil
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine home directory: %v", err)

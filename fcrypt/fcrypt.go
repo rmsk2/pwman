@@ -19,6 +19,7 @@ import (
 )
 
 const ObfEnvVar = "RUSTPWMAN_OBFUSCATION"
+const envVarConfig = "PWMAN_CONFIG"
 const ObfConfig = ".rustpwman"
 
 type AeadGen func(key []byte) (cipher.AEAD, error)
