@@ -76,6 +76,7 @@ Here an overview of the environment variables that `pwman` uses
 |`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
 |`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
 |`RUSTPWMAN_VIEWER`| Prefix for the command to start an image viewer to which the file name of the image (containing a QR code) is appended |
+|`PWMAN_CONFIG`| Path to alternative config file |
 
 # Building
 
