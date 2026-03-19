@@ -43,7 +43,7 @@ afforded by a UNIX domain socket. In order to switch to the loopback device chan
 in `pwman.go` accordingly. 
 
 Interestingly enough Windows implements UNIX domain sockets since around 2017/2018.  The corresponding routines can be found in 
-`windomainsock.go`. UNIX domain sockets not only allow additional access control but on Windows they are also noticebly faster than 
+`windomainsock.go`. UNIX domain sockets not only allow additional access control but on Windows they are also noticeably faster than 
 TCP over the loopback device.
 
 I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle to remember to start it before using `clitool`. Another way
@@ -65,6 +65,14 @@ way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwm
 
 The `bkp` command can be used  to store a local backup of any password safe. When the password safe is stored at a WebDAV location `bkp` allows
 you to perform the backup without first explcitly mounting the WebDAV share as a local drive.
+
+The `qrc` command allows to represent the contents of an entry as a QR code. For this pupose a new file is created which is subsequently
+displayed using the viewer program specified in the `RUSTPWMAN_VIEWER` environment variable. You probably want to delete the file after you have
+scanned the QR code.
+
+In addition the Python script `totp.py` in this repo can be used to determine the contents of a QR code stored in an image file and to print that
+contents to stdout. For reasons of symmetry it also works the other way round, i.e. data read from stdin can be represented as an image file
+containing a QR-code.
 
 Here an overview of the environment variables that `pwman` uses
 
