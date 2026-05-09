@@ -96,7 +96,7 @@ func (p *PwStoreSocket) Serve(prepare ParamPrepareFunc) {
 
 	// Handle shutdown
 	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(sigc, os.Interrupt, syscall.SIGTERM)
 	_ = <-sigc
 	// Make mainloop stop
 	close(c)

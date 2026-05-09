@@ -192,12 +192,12 @@ func (o *Obfuscator) DeObfuscate() (string, string, error) {
 	return userId, pw, nil
 }
 
-type aes128Cfb8Cryptor struct {
+type Aes128Cfb8Cryptor struct {
 	aes   cipher.Block
 	curIv []byte
 }
 
-func NewAes128CfbCryptor(key, iv []byte) *aes128Cfb8Cryptor {
+func NewAes128CfbCryptor(key, iv []byte) *Aes128Cfb8Cryptor {
 	k := make([]byte, len(key))
 	i := make([]byte, len(iv))
 
@@ -209,19 +209,19 @@ func NewAes128CfbCryptor(key, iv []byte) *aes128Cfb8Cryptor {
 		panic(err)
 	}
 
-	return &aes128Cfb8Cryptor{
+	return &Aes128Cfb8Cryptor{
 		aes:   aes,
 		curIv: i,
 	}
 }
 
-func (a *aes128Cfb8Cryptor) Process(data []byte, f func(byte) byte) {
+func (a *Aes128Cfb8Cryptor) Process(data []byte, f func(byte) byte) {
 	for i := 0; i < len(data); i++ {
 		data[i] = f(data[i])
 	}
 }
 
-func (a *aes128Cfb8Cryptor) DecryptByte(in byte) byte {
+func (a *Aes128Cfb8Cryptor) DecryptByte(in byte) byte {
 	r := make([]byte, 16)
 	a.aes.Encrypt(r, a.curIv)
 	o := in ^ r[0]
@@ -235,7 +235,7 @@ func (a *aes128Cfb8Cryptor) DecryptByte(in byte) byte {
 	return o
 }
 
-func (a *aes128Cfb8Cryptor) EncryptByte(in byte) byte {
+func (a *Aes128Cfb8Cryptor) EncryptByte(in byte) byte {
 	r := make([]byte, 16)
 	a.aes.Encrypt(r, a.curIv)
 	o := in ^ r[0]

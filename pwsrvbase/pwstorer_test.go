@@ -38,6 +38,15 @@ func TestGeneric(t *testing.T) {
 
 	err := doBasicTest(s)
 	if err != nil {
-		t.Fatalf("Testing Generic storer failed: %v", err)
+		t.Fatalf("Testing generic storer failed: %v", err)
+	}
+}
+
+func TestObfuscating(t *testing.T) {
+	s := NewObfuscatingStorer()
+
+	err := doBasicTest(s)
+	if err != nil {
+		t.Fatalf("Testing obfuscating storer failed: %v", err)
 	}
 }
