@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"pwman/fcrypt"
 	"sync"
 )
@@ -46,7 +47,7 @@ func (g *GenericStorer) GetPassword(name string) (string, error) {
 
 	password, ok := g.passwords[name]
 	if !ok {
-		return "", fmt.Errorf("Password %s unknown", name)
+		return "", fmt.Errorf("Password unknown")
 	}
 
 	return password, nil
@@ -57,9 +58,15 @@ func (g *GenericStorer) ResetPassword(name string) error {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	delete(g.passwords, name)
+	if name != "*" {
+		delete(g.passwords, name)
+	} else {
+		g.passwords = map[string]string{}
+		log.Println("Cleared all passwords")
+	}
 
 	return nil
+
 }
 
 type ObfuscatingStorer struct {
@@ -112,7 +119,7 @@ func (o *ObfuscatingStorer) GetPassword(name string) (string, error) {
 
 	raw, ok := o.passwords[name]
 	if !ok {
-		return "", fmt.Errorf("Password %s unknown", name)
+		return "", fmt.Errorf("Password unknown")
 	}
 
 	data := make([]byte, len(raw))
@@ -127,7 +134,12 @@ func (o *ObfuscatingStorer) ResetPassword(name string) error {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 
-	delete(o.passwords, name)
+	if name != "*" {
+		delete(o.passwords, name)
+	} else {
+		o.passwords = map[string][]byte{}
+		log.Println("Cleared all passwords")
+	}
 
 	return nil
 }

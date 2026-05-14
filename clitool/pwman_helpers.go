@@ -28,6 +28,10 @@ func MakePasswordName(fileName string) (string, error) {
 	var fullName string
 	var err error
 
+	if fileName == "*" {
+		return fileName, nil
+	}
+
 	if !strings.HasPrefix(fileName, "https://") {
 		fullName, err = filepath.Abs(fileName)
 		if err != nil {
