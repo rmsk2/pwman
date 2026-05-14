@@ -54,8 +54,8 @@ variable is set and `-i` is not specified then `clitool` uses the value from the
 
 When using the Windows build script `buildall.bat` the program `pwserv.exe` is built as a Windows GUI application. This means it does not own
 a console and if you start it in a DOS box or a Powershell window the program immediately "returns" but is started in the background. You
-can also put it in the autostart folder which still exists in Windows 11 and can be accessed by entering `shell:startup` after pressing `Win + r`
-on the keyboard or start it automatically after logon in any other way you see fit. If you want to stop it you have to use the Task manger
+can also put it in the autostart folder, which still exists in Windows 11 and can be accessed by entering `shell:startup` after pressing `Win + r`
+on the keyboard, or start it automatically after logon in any other way you see fit. If you want to stop it you have to use the Task manager
 for the moment. Remove `-ldflags="-H windowsgui"` to build `pwserv.exe` as a console application for instance during development.
 
 The `clp` command allows you to replace the contents of an entry by the contents of the clipboard or to create a new entry holding the contents 
