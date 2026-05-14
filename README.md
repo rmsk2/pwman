@@ -52,6 +52,12 @@ I have added `pwserv` to my startup programs in Ubuntu to eliminate the hassle t
 to simplify calls to `clitool` is to set the environment variable `PWMANFILE` to the file system location of the password safe file. If this
 variable is set and `-i` is not specified then `clitool` uses the value from the environment. If `-i` is present this value takes precedence.
 
+When using the Windows build script `buildall.bat` the program `pwserv.exe` is built as a Windows GUI application. This means it does not own
+a console and if you start it in a DOS box or a Powershell window the program immediately "returns" but is started in the background. You
+can also put it in the autostart folder which still exists in Windows 11 and can be accessed by entering `shell:startup` after pressing `Win + r`
+on the keyboard or start it automatically after logon in any other way you see fit. If you want to stop it you have to use the Task manger
+for the moment. Remove `-ldflags="-H windowsgui"` to build `pwserv.exe` as a console application for instance during development.
+
 The `clp` command allows you to replace the contents of an entry by the contents of the clipboard or to create a new entry holding the contents 
 of the clipboard. By setting the environment variable `PWMANCLIP` to the value you would give to the `-c` option you can specify a default for
 that value. It is then used whenever the `-c` option is omitted. If the `-c` option is present it takes precedence over the value of the 
