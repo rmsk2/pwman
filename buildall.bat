@@ -9,6 +9,6 @@ go build
 
 cd ..\pwserv
 echo Building pwsrv
-go build
+go build -ldflags="-H windowsgui" -o pwserv.exe
 
 cd ..
