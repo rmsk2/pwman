@@ -28,7 +28,9 @@ The following commands are available:
 
 You can get additional help for any given command by calling `clitool <command> -h `. There is a second optional component which resides in the 
 `pwserv` subdirectory. It implements a socket based server which allows to cache passwords.  You can instruct `clitool` to cache a verified 
-password via `pwserv` by using the `pwd` command and you can make `pwserv` forget a password by issuing the `rst` command.
+password via `pwserv` by using the `pwd` command and you can make `pwserv` forget a password by issuing the `rst` command. Beginning with version
+1.3.3 of the `clitool` you can delete all cached passwords by using the password file name `*` (do not forget to quote this on your Linux/macOS
+machine).
 
 The `enc` and `dec` commands are not password manager specific. They can be used to encrypt or decrypt any file which has the format described
 in the `rustpwman` documentation.
