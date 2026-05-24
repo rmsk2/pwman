@@ -583,7 +583,7 @@ func (c *CmdContext) GetVersion(args []string) error {
 	fmt.Printf("Version: %s\n", VersionInfo)
 	fmt.Printf("Commit hash: %s\n", commitHash)
 	fmt.Printf("Commit time: %s\n", commitTime)
-	fmt.Println("Written by Martin Grap (rmsk2@gmx.de) in 2020-2025")
+	fmt.Println("Written by Martin Grap (rmsk2@gmx.de) in 2020-2026")
 	return nil
 }
 
