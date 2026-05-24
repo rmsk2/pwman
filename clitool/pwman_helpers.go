@@ -1,9 +1,9 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"pwman/fcrypt"
@@ -32,7 +32,7 @@ func MakePasswordName(fileName string) (string, error) {
 		return fileName, nil
 	}
 
-	if !strings.HasPrefix(fileName, "https://") {
+	if !(strings.HasPrefix(fileName, "https://") || strings.HasPrefix(fileName, "http://")) {
 		fullName, err = filepath.Abs(fileName)
 		if err != nil {
 			return "", err
@@ -41,12 +41,12 @@ func MakePasswordName(fileName string) (string, error) {
 		fullName = fileName
 	}
 
-	hash := md5.New()
-	_, err = io.Copy(hash, strings.NewReader(fullName))
+	mac := hmac.New(sha256.New, obfuscator)
+	_, err = mac.Write([]byte(fullName))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to calc cache address: %v", err)
 	}
-	sum := hash.Sum(nil)
+	sum := mac.Sum(nil)[:16]
 
 	return fmt.Sprintf("PWMAN:%x", sum), nil
 }
