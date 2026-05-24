@@ -6,7 +6,7 @@ go clean ./...
 echo Building obfuscation helper
 cd builder
 go build
-del ..\clitool\addr_helper.go
+del ..\clitool\addr_helper.go > nul 2>&1
 .\builder.exe ..\clitool\addr_helper.go
 cd ..\
 
