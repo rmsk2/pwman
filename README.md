@@ -18,6 +18,7 @@ The following commands are available:
      init: Creates an empty password safe
      list: Lists keys of entries in a file
      obf: Obfuscate WebDAV password and create corresponding config
+     otp: Calculate TOTP codes from an entry
      put: Adds/modifies an entry by setting its contents through a file
      pwd: Checks the password and transfers it to pwserv
      qrc: Create a QR code from an entry
@@ -73,6 +74,9 @@ way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwm
 
 The `bkp` command can be used  to store a local backup of any password safe. When the password safe is stored at a WebDAV location `bkp` allows
 you to perform the backup without first explcitly mounting the WebDAV share as a local drive.
+
+The `otp` command can be used to calculate TOTP token values from an entry, if that entry contains a valid TOTP-URL. The token is recacalculated
+each second. You can suppress recalculation by adding the option `-oneshot`.
 
 The `qrc` command allows to represent the contents of an entry as a QR code. For this pupose a new file is created which is subsequently
 displayed using the viewer program specified in the `RUSTPWMAN_VIEWER` environment variable. You probably want to delete the file after you have
