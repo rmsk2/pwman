@@ -686,7 +686,7 @@ func (c *CmdContext) OtpCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman otp", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File holding password safe")
 	key := decFlags.String("k", "", "Key to search")
-	oneShot := decFlags.Bool("oneshot", false, "If specified output is not formatted")
+	oneShot := decFlags.Bool("oneshot", false, "If specified no TOTP recalculation is performed")
 
 	err := decFlags.Parse(args)
 	if err != nil {
