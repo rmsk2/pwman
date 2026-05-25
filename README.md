@@ -59,11 +59,6 @@ can also put it in the autostart folder, which still exists in Windows 11 and ca
 on the keyboard, or start it automatically after logon in any other way you see fit. If you want to stop it you have to use the Task manager
 for the moment. Remove `-ldflags="-H windowsgui"` to build `pwserv.exe` as a console application for instance during development.
 
-The `clp` command allows you to replace the contents of an entry by the contents of the clipboard or to create a new entry holding the contents 
-of the clipboard. By setting the environment variable `PWMANCLIP` to the value you would give to the `-c` option you can specify a default for
-that value. It is then used whenever the `-c` option is omitted. If the `-c` option is present it takes precedence over the value of the 
-environment variable.
-
 If you set the environment variable `PWMANCIPHER` to the value `AES192` or `AES256` then `pwman` will use AES-192 or AES-256 GCM for en- and
 decryption of the password data. Any other value makes `pwman` using ChaCha20Poly1305.
 
@@ -71,6 +66,25 @@ decryption of the password data. Any other value makes `pwman` using ChaCha20Pol
 in the users home directory which contains the entries `webdav_user` and `webdav_pw` where the WebDAV password has to be obfuscated in the
 way described in the `rustpwan` [documentation](https://github.com/rmsk2/rustpwman?tab=readme-ov-file#webdav-support). The command 
 `clitool obf` can be used to create the corresponding configuration file when you do not make use of `rustpwman`. 
+
+Here an overview of the environment variables that `pwman` uses
+
+|Name | Intended use |
+|-|-
+|`PWMANFILE`| File name or WebDAV address of preferred password file |
+|`PWMANCIPHER`| If present then the values `AES192` and `AES256` select AES-192 GCM or AES-256 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
+|`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
+|`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
+|`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
+|`RUSTPWMAN_VIEWER`| Prefix for the command to start an image viewer to which the file name of the image (containing a QR code) is appended |
+|`PWMAN_CONFIG`| Path to alternative config file |
+
+# Additional info about specific commands
+
+The `clp` command allows you to replace the contents of an entry by the contents of the clipboard or to create a new entry holding the contents 
+of the clipboard. By setting the environment variable `PWMANCLIP` to the value you would give to the `-c` option you can specify a default for
+that value. It is then used whenever the `-c` option is omitted. If the `-c` option is present it takes precedence over the value of the 
+environment variable.
 
 The `bkp` command can be used  to store a local backup of any password safe. When the password safe is stored at a WebDAV location `bkp` allows
 you to perform the backup without first explcitly mounting the WebDAV share as a local drive.
@@ -85,18 +99,6 @@ scanned the QR code.
 In addition the Python script `totp.py` in this repo can be used to determine the contents of a QR code stored in an image file and to print that
 contents to stdout. For reasons of symmetry it also works the other way round, i.e. data read from stdin can be represented as an image file
 containing a QR-code.
-
-Here an overview of the environment variables that `pwman` uses
-
-|Name | Intended use |
-|-|-
-|`PWMANFILE`| File name or WebDAV address of preferred password file |
-|`PWMANCIPHER`| If present then the values `AES192` and `AES256` select AES-192 GCM or AES-256 GCM as a cipher. Any other value selects ChaCha20-Poly1305. If not set AES-256 GCM is used|
-|`PWMANCLIP`| Command to use when "pasting" the clipboard contents during a `clp` command|
-|`PWMANBKP`| File name to store backup in if no `-o` parameter has been given at the command line of a `bkp` command|
-|`RUSTPWMAN_OBFUSCATION`| Key used to obfuscate WebDAV access data|
-|`RUSTPWMAN_VIEWER`| Prefix for the command to start an image viewer to which the file name of the image (containing a QR code) is appended |
-|`PWMAN_CONFIG`| Path to alternative config file |
 
 # Building
 
