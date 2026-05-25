@@ -676,7 +676,7 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 	)
 }
 
-func totpHelper(t time.Time, totpParams fcrypt.TotpParams) {
+func totpHelper(t time.Time, totpParams *fcrypt.TotpParams) {
 	code, remaining := totpParams.GetCurrentCode(t)
 	fmt.Printf(" Code: %s, %02d seconds remaining\r", code, remaining)
 }
@@ -721,7 +721,7 @@ func (c *CmdContext) OtpCommand(args []string) error {
 				code, remaining := totpParams.GetCurrentCode(time.Now())
 				fmt.Printf("Code: %s, %02d seconds remaining\n", code, remaining)
 			} else {
-				tsk := NewBackgroundTask(func(t time.Time) { totpHelper(t, *totpParams) })
+				tsk := NewBackgroundTask(func(t time.Time) { totpHelper(t, totpParams) })
 				fmt.Println("Press return to stop")
 				fmt.Println("--------------------")
 				tsk.Start()
