@@ -12,12 +12,13 @@ import (
 	"pwman/pwsrvbase/domainsock"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.3.4"
+const VersionInfo = "1.4.0"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -675,6 +676,65 @@ func (c *CmdContext) ClipboardCommand(args []string) error {
 	)
 }
 
+func totpHelper(t time.Time, totpParams fcrypt.TotpParams) {
+	code, remaining := totpParams.GetCurrentCode(t)
+	fmt.Printf(" Code: %s, %02d seconds remaining\r", code, remaining)
+}
+
+// OtpCommand decrypts and searches in a file, looks for a TOTP URL and calculates valid codes
+func (c *CmdContext) OtpCommand(args []string) error {
+	decFlags := flag.NewFlagSet("pwman otp", flag.ContinueOnError)
+	inFile := decFlags.String("i", "", "File holding password safe")
+	key := decFlags.String("k", "", "Key to search")
+	oneShot := decFlags.Bool("oneshot", false, "If specified output is not formatted")
+
+	err := decFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	safeName := getPwSafeFileName(inFile)
+
+	if safeName == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	if *key == "" {
+		return fmt.Errorf("No key specified")
+	}
+
+	man := c.jotsManagerCreator(safeName)
+
+	return transact(man,
+		func(g fcrypt.Gjotser) error {
+			entry, err := g.GetEntry(*key)
+			if err != nil {
+				return err
+			}
+
+			totpParams, err := fcrypt.NewFromTotpUrl(entry)
+			if err != nil {
+				return err
+			}
+
+			if *oneShot {
+				code, remaining := totpParams.GetCurrentCode(time.Now())
+				fmt.Printf("Code: %s, %02d seconds remaining\n", code, remaining)
+			} else {
+				tsk := NewBackgroundTask(func(t time.Time) { totpHelper(t, *totpParams) })
+				fmt.Println("Press return to stop")
+				fmt.Println("--------------------")
+				tsk.Start()
+				fmt.Scanln()
+				tsk.End()
+			}
+
+			return nil
+
+		}, &safeName, false, c.client,
+	)
+}
+
 func main() {
 	if v := os.Getenv("PWMANCIPHER"); v != "" {
 		switch v {
@@ -706,6 +766,7 @@ func main() {
 	subcommParser.AddCommand("obf", ctx.ObfuscateWebDavPassword, "Obfuscate WebDAV password and create corresponding config")
 	subcommParser.AddCommand("bkp", ctx.BackupCommand, "Store a backup of the given password safe")
 	subcommParser.AddCommand("qrc", ctx.QrCodeCommand, "Create a QR code from an entry")
+	subcommParser.AddCommand("otp", ctx.OtpCommand, "Calculate TOTP codes from an entry")
 
 	subcommParser.Execute()
 }

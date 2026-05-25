@@ -9,7 +9,9 @@ import (
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"golang.org/x/term"
 )
@@ -152,4 +154,46 @@ func transact(manager fcrypt.GjotsManager, proc procFunc, inFile *string, doWrit
 	}
 
 	return nil
+}
+
+type SecondFunc func(currentTime time.Time)
+
+type BackgroundTask struct {
+	wg   sync.WaitGroup
+	f    SecondFunc
+	done chan struct{}
+}
+
+func NewBackgroundTask(f SecondFunc) *BackgroundTask {
+	return &BackgroundTask{
+		f:    f,
+		done: make(chan struct{}),
+	}
+}
+
+func (b *BackgroundTask) eachSecond() {
+	defer b.wg.Done()
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	b.f(time.Now())
+
+	for {
+		select {
+		case <-b.done:
+			return
+		case t := <-ticker.C:
+			b.f(t)
+		}
+	}
+}
+
+func (b *BackgroundTask) Start() {
+	b.wg.Add(1)
+	go b.eachSecond()
+}
+
+func (b *BackgroundTask) End() {
+	close(b.done)
+	b.wg.Wait()
 }
