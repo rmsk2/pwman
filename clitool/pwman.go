@@ -747,7 +747,7 @@ func (c *CmdContext) GenCommand(args []string) error {
 		os.Exit(42)
 	}
 
-	if *length != 0 && *entropy != 0 {
+	if (*length != 0) && (*entropy != 0) {
 		return fmt.Errorf("-l and -e must not be used together")
 	}
 
