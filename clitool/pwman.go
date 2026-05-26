@@ -18,7 +18,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.0"
+const VersionInfo = "1.4.1"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -735,6 +735,50 @@ func (c *CmdContext) OtpCommand(args []string) error {
 	)
 }
 
+func (c *CmdContext) GenCommand(args []string) error {
+	genFlags := flag.NewFlagSet("pwman gen", flag.ContinueOnError)
+	alphabet := genFlags.String("a", "base64", "Alphabet: base64, hex, numeric")
+	length := genFlags.Uint("l", 0, "Desired password length")
+	entropy := genFlags.Uint("e", 0, "Desired entropy of password in bits")
+	count := genFlags.Uint("n", 1, "Number of passwords to generate")
+
+	err := genFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	if *length != 0 && *entropy != 0 {
+		return fmt.Errorf("-l and -e must not be used together")
+	}
+
+	var gen *fcrypt.PwGenerator
+	switch *alphabet {
+	case "base64":
+		gen = fcrypt.NewBase64Generator()
+	case "hex":
+		gen = fcrypt.NewHexGenerator()
+	case "numeric":
+		gen = fcrypt.NewNumericGenerator()
+	default:
+		return fmt.Errorf("unknown alphabet '%s': use base64, hex or numeric", *alphabet)
+	}
+
+	// Due to the check above only one of these ifs is executed
+	if *length != 0 {
+		gen.SetPwLength(uint16(*length))
+	}
+
+	if *entropy != 0 {
+		gen.SetPwLengthByEntropy(*entropy)
+	}
+
+	for i := uint(0); i < *count; i++ {
+		fmt.Println(gen.Generate())
+	}
+
+	return nil
+}
+
 func main() {
 	if v := os.Getenv("PWMANCIPHER"); v != "" {
 		switch v {
@@ -767,6 +811,7 @@ func main() {
 	subcommParser.AddCommand("bkp", ctx.BackupCommand, "Store a backup of the given password safe")
 	subcommParser.AddCommand("qrc", ctx.QrCodeCommand, "Create a QR code from an entry")
 	subcommParser.AddCommand("otp", ctx.OtpCommand, "Calculate TOTP codes from an entry")
+	subcommParser.AddCommand("gen", ctx.GenCommand, "Generate one or more passwords")
 
 	subcommParser.Execute()
 }

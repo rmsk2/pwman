@@ -14,6 +14,7 @@ The following commands are available:
      dec: Decrypts a file
      del: Deletes an entry from a file
      enc: Encrypts a file
+     gen: Generate one or more passwords
      get: Get an entry from a file
      init: Creates an empty password safe
      list: Lists keys of entries in a file
