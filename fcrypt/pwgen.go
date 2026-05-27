@@ -2,8 +2,10 @@ package fcrypt
 
 import (
 	"crypto/rand"
+	"maps"
 	"math"
 	"math/big"
+	"slices"
 	"strings"
 )
 
@@ -39,11 +41,37 @@ func NewNumericGenerator() *PwGenerator {
 	return h
 }
 
+func NewCustomGenerator(a string) *PwGenerator {
+	h := NewPwGenerator(a, 10)
+	h.SetPwLengthByEntropy(DefaultEntropy)
+
+	return h
+}
+
 func NewPwGenerator(a string, l uint16) *PwGenerator {
 	return &PwGenerator{
-		alphabet: []rune(a),
+		alphabet: removeDuplicates(a),
 		pwLen:    l,
 	}
+}
+
+func removeDuplicates(a string) []rune {
+	isMember := map[rune]bool{}
+
+	for _, r := range a {
+		isMember[r] = true
+	}
+
+	return slices.Collect(maps.Keys(isMember))
+}
+
+func (p *PwGenerator) IsAlphabetValid() bool {
+	return len(p.alphabet) >= 2
+}
+
+func (p *PwGenerator) AlphaInfo() (int, float64) {
+	entropyByCharacter := math.Log2(float64(len(p.alphabet)))
+	return len(p.alphabet), entropyByCharacter
 }
 
 func (p *PwGenerator) SetPwLength(desiredLength uint16) {

@@ -18,7 +18,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.1"
+const VersionInfo = "1.4.2"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -740,7 +740,9 @@ func (c *CmdContext) GenCommand(args []string) error {
 	alphabet := genFlags.String("a", "base64", "Alphabet: base64, hex, numeric")
 	length := genFlags.Uint("l", 0, "Desired password length")
 	entropy := genFlags.Uint("e", 0, "Desired entropy of password in bits")
-	count := genFlags.Uint("n", 1, "Number of passwords to generate")
+	count := genFlags.Uint("n", 1, "Number of passwords to generate. Use -n 0 to see statistical info")
+	custom := genFlags.String("custom", "", "Use custom alphabet. Takes precedence over -a if present")
+	var gen *fcrypt.PwGenerator
 
 	err := genFlags.Parse(args)
 	if err != nil {
@@ -751,16 +753,26 @@ func (c *CmdContext) GenCommand(args []string) error {
 		return fmt.Errorf("-l and -e must not be used together")
 	}
 
-	var gen *fcrypt.PwGenerator
-	switch *alphabet {
-	case "base64":
-		gen = fcrypt.NewBase64Generator()
-	case "hex":
-		gen = fcrypt.NewHexGenerator()
-	case "numeric":
-		gen = fcrypt.NewNumericGenerator()
-	default:
-		return fmt.Errorf("unknown alphabet '%s': use base64, hex or numeric", *alphabet)
+	if len(*custom) == 1 {
+		return fmt.Errorf("a custom alphabet has to contain at least two characters")
+	}
+
+	if len(*custom) >= 2 {
+		gen = fcrypt.NewCustomGenerator(*custom)
+		if !gen.IsAlphabetValid() {
+			return fmt.Errorf("a custom alphabet has to contain at least two unique characters")
+		}
+	} else {
+		switch *alphabet {
+		case "base64":
+			gen = fcrypt.NewBase64Generator()
+		case "hex":
+			gen = fcrypt.NewHexGenerator()
+		case "numeric":
+			gen = fcrypt.NewNumericGenerator()
+		default:
+			return fmt.Errorf("unknown alphabet '%s': use base64, hex or numeric", *alphabet)
+		}
 	}
 
 	// Due to the check above only one of these ifs is executed
@@ -772,8 +784,15 @@ func (c *CmdContext) GenCommand(args []string) error {
 		gen.SetPwLengthByEntropy(*entropy)
 	}
 
-	for i := uint(0); i < *count; i++ {
-		fmt.Println(gen.Generate())
+	if *count > 0 {
+		for i := uint(0); i < *count; i++ {
+			fmt.Println(gen.Generate())
+		}
+	} else {
+		l, entropyByChar := gen.AlphaInfo()
+		fmt.Printf("Chars in alphabet: %d\n", l)
+		fmt.Printf("Entropy per char : %f bits\n", entropyByChar)
+		fmt.Printf("Entropy overall  : %f bits\n", gen.Entropy())
 	}
 
 	return nil
