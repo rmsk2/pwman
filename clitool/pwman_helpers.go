@@ -197,3 +197,19 @@ func (b *BackgroundTask) End() {
 	close(b.done)
 	b.wg.Wait()
 }
+
+type multiString []string
+
+func (i *multiString) String() string {
+	if i == nil {
+		return ""
+	} else {
+		return fmt.Sprint(*i)
+	}
+}
+
+func (i *multiString) Set(value string) error {
+	*i = append(*i, value)
+
+	return nil
+}

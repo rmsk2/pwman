@@ -18,7 +18,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.2"
+const VersionInfo = "1.4.3"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -269,9 +269,10 @@ func (c *CmdContext) ListCommand(args []string) error {
 
 // GetCommand decrypts and searches in a file and writes the result to stdout
 func (c *CmdContext) GetCommand(args []string) error {
+	var keys multiString
 	decFlags := flag.NewFlagSet("pwman get", flag.ContinueOnError)
 	inFile := decFlags.String("i", "", "File holding password safe")
-	key := decFlags.String("k", "", "Key to search")
+	decFlags.Var(&keys, "k", "Key to search. Can appear multiple times")
 	verbose := decFlags.Bool("verbose", false, "If specified output is not formatted")
 
 	err := decFlags.Parse(args)
@@ -285,7 +286,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	if *key == "" {
+	if len(keys) == 0 {
 		return fmt.Errorf("No key specified")
 	}
 
@@ -293,9 +294,17 @@ func (c *CmdContext) GetCommand(args []string) error {
 
 	return transact(man,
 		func(g fcrypt.Gjotser) error {
-			err = g.PrintEntry(*key, *verbose)
-			if err != nil {
-				return err
+			keysNotFound := []string{}
+
+			for _, key := range keys {
+				err = g.PrintEntry(key, *verbose)
+				if err != nil {
+					keysNotFound = append(keysNotFound, key)
+				}
+			}
+
+			if len(keysNotFound) > 0 {
+				return fmt.Errorf("error while reading key(s) %s", strings.Join(keysNotFound, ", "))
 			}
 
 			return nil
