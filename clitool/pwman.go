@@ -274,6 +274,7 @@ func (c *CmdContext) GetCommand(args []string) error {
 	inFile := decFlags.String("i", "", "File holding password safe")
 	decFlags.Var(&keys, "k", "Key to search. Can appear multiple times")
 	verbose := decFlags.Bool("verbose", false, "If specified output is not formatted")
+	noErrors := decFlags.Bool("no-errors", false, "If present do not show individual errors")
 
 	err := decFlags.Parse(args)
 	if err != nil {
@@ -292,19 +293,26 @@ func (c *CmdContext) GetCommand(args []string) error {
 
 	man := c.jotsManagerCreator(safeName)
 
+	allErrors := []error{}
+
 	return transact(man,
 		func(g fcrypt.Gjotser) error {
-			keysNotFound := []string{}
 
 			for _, key := range keys {
 				err = g.PrintEntry(key, *verbose)
 				if err != nil {
-					keysNotFound = append(keysNotFound, key)
+					allErrors = append(allErrors, err)
 				}
 			}
 
-			if len(keysNotFound) > 0 {
-				return fmt.Errorf("error while reading key(s) %s", strings.Join(keysNotFound, ", "))
+			if len(allErrors) > 0 {
+				if !*noErrors {
+					for _, j := range allErrors {
+						fmt.Println(j)
+					}
+				}
+
+				return fmt.Errorf("error reading some entries")
 			}
 
 			return nil

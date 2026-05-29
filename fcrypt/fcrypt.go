@@ -77,10 +77,14 @@ type GjotsManager interface {
 	Close(fileName string, password string) error
 }
 
+func NameIsWebDav(name string) bool {
+	return strings.HasPrefix(name, "https://") || strings.HasPrefix(name, "http://")
+}
+
 func GetGjotsManager(name string) GjotsManager {
 	var res GjotsManager
 
-	if strings.HasPrefix(name, "https://") {
+	if NameIsWebDav(name) {
 		deobfuscator := NewObfuscator(ObfEnvVar, ObfConfig)
 		res = NewGjotsWebdav(NewSimpleWebDav(), deobfuscator.DeObfuscate)
 	} else {

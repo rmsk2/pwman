@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"pwman/fcrypt"
 	"pwman/pwsrvbase"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -34,7 +33,7 @@ func MakePasswordName(fileName string) (string, error) {
 		return fileName, nil
 	}
 
-	if !(strings.HasPrefix(fileName, "https://") || strings.HasPrefix(fileName, "http://")) {
+	if !fcrypt.NameIsWebDav(fileName) {
 		fullName, err = filepath.Abs(fileName)
 		if err != nil {
 			return "", err

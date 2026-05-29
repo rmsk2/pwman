@@ -100,7 +100,7 @@ func (p *PwStoreSocket) Serve(prepare ParamPrepareFunc) {
 	_ = <-sigc
 	// Make mainloop stop
 	close(c)
-	// Close server socket and make UDS disappear
+	// Close server socket and make UDS disappear. This also
+	// wakes up the Accept() call.
 	ln.Close()
-	os.Exit(0)
 }
