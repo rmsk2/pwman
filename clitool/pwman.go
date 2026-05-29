@@ -18,7 +18,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.3"
+const VersionInfo = "1.4.4"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
