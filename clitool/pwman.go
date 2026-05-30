@@ -18,7 +18,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.4"
+const VersionInfo = "1.4.5"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -522,8 +522,8 @@ func (c *CmdContext) RenameCommand(args []string) error {
 func (c *CmdContext) UpsertCommand(args []string) error {
 	putFlags := flag.NewFlagSet("pwman put", flag.ContinueOnError)
 	inFile := putFlags.String("i", "", "File holding password safe")
-	key := putFlags.String("k", "", "Key of entry to modify")
-	dataFile := putFlags.String("v", "", "File containing value to associate with path/name. Omit this to read from stdin")
+	key := putFlags.String("k", "", "Key of entry to add or modify")
+	dataFile := putFlags.String("f", "", "Name of file which holds new contents of entry. Omit this to read from stdin")
 	var rawValue []byte
 
 	err := putFlags.Parse(args)
@@ -597,11 +597,10 @@ func getInfo() (string, string) {
 
 func (c *CmdContext) GetVersion(args []string) error {
 	commitHash, commitTime := getInfo()
-	fmt.Println("PWMAN clitool")
-	fmt.Printf("Version: %s\n", VersionInfo)
+	fmt.Printf("PWMAN clitool version %s\n", VersionInfo)
 	fmt.Printf("Commit hash: %s\n", commitHash)
 	fmt.Printf("Commit time: %s\n", commitTime)
-	fmt.Println("Written by Martin Grap (rmsk2@gmx.de) in 2020-2026")
+	fmt.Println("Written by Martin Grap (rmsk2@gmx.de) 2020-2026")
 	return nil
 }
 
@@ -834,7 +833,7 @@ func main() {
 	subcommParser.AddCommand("enc", ctx.EncryptCommand, "Encrypts a file")
 	subcommParser.AddCommand("dec", ctx.DecryptCommand, "Decrypts a file")
 	subcommParser.AddCommand("list", ctx.ListCommand, "Lists keys of entries in a file")
-	subcommParser.AddCommand("get", ctx.GetCommand, "Get an entry from a file")
+	subcommParser.AddCommand("get", ctx.GetCommand, "Get one or more entries from a file")
 	subcommParser.AddCommand("put", ctx.UpsertCommand, "Adds/modifies an entry by setting its contents through a file")
 	subcommParser.AddCommand("ren", ctx.RenameCommand, "Renames an entry in a file")
 	subcommParser.AddCommand("del", ctx.DeleteCommand, "Deletes an entry from a file")
