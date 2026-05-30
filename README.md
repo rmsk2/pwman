@@ -15,7 +15,7 @@ The following commands are available:
      del: Deletes an entry from a file
      enc: Encrypts a file
      gen: Generate one or more passwords
-     get: Get an entry from a file
+     get: Get one or more entries from a file
      init: Creates an empty password safe
      list: Lists keys of entries in a file
      obf: Obfuscate WebDAV password and create corresponding config
