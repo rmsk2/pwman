@@ -88,6 +88,61 @@ func (c *CmdContext) InitCommand(args []string) error {
 	return man.Close(*outFile, password)
 }
 
+func (c *CmdContext) PwChangeCommand(args []string) error {
+	chgFlags := flag.NewFlagSet("pwman chg", flag.ContinueOnError)
+	inFile := chgFlags.String("i", "", "File of which the password should be changed")
+	var pwWasCached bool
+
+	err := chgFlags.Parse(args)
+	if err != nil {
+		os.Exit(42)
+	}
+
+	safeName := getPwSafeFileName(inFile)
+	if safeName == "" {
+		return fmt.Errorf("No input file specified")
+	}
+
+	fullName, err := MakePasswordName(safeName)
+	if err != nil {
+		return fmt.Errorf("Error changing password: %v", err)
+	}
+
+	pw, err := c.client.GetPassword(fullName)
+	pwWasCached = (err == nil) && (pw != "")
+
+	currentPassword, err := GetSecurePassword(enterPwText)
+	if err != nil {
+		return fmt.Errorf("Error changing password: %v", err)
+	}
+
+	newPassword, err := GetSecurePasswordVerified("Enter new password: ", "Verify new password: ")
+	if err != nil {
+		return fmt.Errorf("Error changing password: %v", err)
+	}
+
+	manager := c.jotsManagerCreator(safeName)
+
+	_, err = manager.Open(safeName, currentPassword)
+	if err != nil {
+		return fmt.Errorf("Error changing password: %v", err)
+	}
+
+	err = manager.Close(safeName, newPassword)
+	if err != nil {
+		return fmt.Errorf("Error changing password: %v", err)
+	}
+
+	if pwWasCached {
+		err = c.client.ResetPassword(fullName)
+		if err != nil {
+			return fmt.Errorf("Error changing password: %v", err)
+		}
+	}
+
+	return nil
+}
+
 // EncryptCommand encrypts a file and writes the result to stdout
 func (c *CmdContext) EncryptCommand(args []string) error {
 	encFlags := flag.NewFlagSet("pwman enc", flag.ContinueOnError)
@@ -147,7 +202,8 @@ func (c *CmdContext) DecryptCommand(args []string) error {
 		return fmt.Errorf("No input file specified")
 	}
 
-	password, err := getPassword(enterPwText, c.client, *inFile)
+	// Make sure the person typing the command actually knows the current password
+	password, err := GetSecurePassword(enterPwText)
 	if err != nil {
 		return fmt.Errorf("Error decrypting file: %v", err)
 	}
@@ -847,6 +903,7 @@ func main() {
 	subcommParser.AddCommand("qrc", ctx.QrCodeCommand, "Create a QR code from an entry")
 	subcommParser.AddCommand("otp", ctx.OtpCommand, "Calculate TOTP codes from an entry")
 	subcommParser.AddCommand("gen", ctx.GenCommand, "Generate one or more passwords")
+	subcommParser.AddCommand("chg", ctx.PwChangeCommand, "Change current password")
 
 	subcommParser.Execute()
 }

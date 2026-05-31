@@ -10,6 +10,7 @@ access a password manager file as described in the `rustpwman` documentation. Th
 ```
 The following commands are available: 
      bkp: Store a backup of the given password safe
+     chg: Change current password
      clp: Adds/modifies an entry by setting its contents through the clipboard
      dec: Decrypts a file
      del: Deletes an entry from a file
