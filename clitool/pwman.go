@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const VersionInfo = "1.4.8"
+const VersionInfo = "1.4.9"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -770,7 +770,7 @@ func (c *CmdContext) OtpCommand(args []string) error {
 
 func (c *CmdContext) GenCommand(args []string) error {
 	genFlags := flag.NewFlagSet("pwman gen", flag.ContinueOnError)
-	alphabet := genFlags.String("a", "base64", "Alphabet: base64, hex, numeric")
+	alphabet := genFlags.String("a", "base64", "Alphabet: base64, base32, hex, numeric")
 	length := genFlags.Uint("l", 0, "Desired password length")
 	entropy := genFlags.Uint("e", 0, "Desired entropy of password in bits")
 	count := genFlags.Uint("n", 1, "Number of passwords to generate. Use -n 0 to see statistical info")
@@ -799,12 +799,14 @@ func (c *CmdContext) GenCommand(args []string) error {
 		switch *alphabet {
 		case "base64":
 			gen = fcrypt.NewBase64Generator()
+		case "base32":
+			gen = fcrypt.NewBase32Generator()
 		case "hex":
 			gen = fcrypt.NewHexGenerator()
 		case "numeric":
 			gen = fcrypt.NewNumericGenerator()
 		default:
-			return fmt.Errorf("unknown alphabet '%s': use base64, hex or numeric", *alphabet)
+			return fmt.Errorf("unknown alphabet '%s': use base64, base32, hex or numeric", *alphabet)
 		}
 	}
 

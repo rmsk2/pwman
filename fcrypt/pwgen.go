@@ -10,6 +10,7 @@ import (
 )
 
 const Base64 string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!"
+const Base32 string = "23456789ABCDEFGHIKLMNPQRSTUVWXYZ"
 const Hex string = "abcdef0123456789"
 const Numeric string = "0123456789"
 
@@ -22,6 +23,13 @@ type PwGenerator struct {
 
 func NewBase64Generator() *PwGenerator {
 	h := NewPwGenerator(Base64, 10)
+	h.SetPwLengthByEntropy(DefaultEntropy)
+
+	return h
+}
+
+func NewBase32Generator() *PwGenerator {
+	h := NewPwGenerator(Base32, 10)
 	h.SetPwLengthByEntropy(DefaultEntropy)
 
 	return h
