@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"image/png"
 	"io"
 	"os"
 	"os/exec"
@@ -13,12 +12,9 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"github.com/boombuler/barcode"
-	"github.com/boombuler/barcode/qr"
 )
 
-const VersionInfo = "1.4.6"
+const VersionInfo = "1.4.7"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
@@ -377,42 +373,6 @@ func (c *CmdContext) GetCommand(args []string) error {
 	)
 }
 
-func createQrCode(data string, outFile string, size int) error {
-	qrCode, err := qr.Encode(data, qr.M, qr.Auto)
-	if err != nil {
-		return err
-	}
-
-	qrCode, err = barcode.Scale(qrCode, size, size)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(outFile)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return png.Encode(file, qrCode)
-}
-
-func startViewer(viewer string, outFile string) error {
-	params := strings.Split(viewer, " ")
-	sanitzedParams := []string{}
-
-	for _, j := range params {
-		if j != "" {
-			sanitzedParams = append(sanitzedParams, j)
-		}
-	}
-
-	sanitzedParams = append(sanitzedParams, outFile)
-	cmd := exec.Command(sanitzedParams[0], sanitzedParams[1:]...)
-
-	return cmd.Start()
-}
-
 // QrCodeCommand decrypts and searches in a file and writes the result as a QR code to a file
 func (c *CmdContext) QrCodeCommand(args []string) error {
 	qrcFlags := flag.NewFlagSet("pwman qrc", flag.ContinueOnError)
@@ -421,6 +381,7 @@ func (c *CmdContext) QrCodeCommand(args []string) error {
 	outFile := qrcFlags.String("o", "", "File to hold QR-Code")
 	size := qrcFlags.Int("size", 250, "QR code size in pixel")
 	noViewer := qrcFlags.Bool("noviewer", false, "If present: Do not start viewer")
+	extract := qrcFlags.Bool("extract", false, "If present: Try to extract QR code")
 
 	err := qrcFlags.Parse(args)
 	if err != nil {
@@ -454,7 +415,7 @@ func (c *CmdContext) QrCodeCommand(args []string) error {
 				return err
 			}
 
-			err = createQrCode(data, *outFile, *size)
+			err = createQrCode(data, *outFile, *size, *extract)
 			if err != nil {
 				return err
 			}

@@ -5,11 +5,6 @@ import (
 	"testing"
 )
 
-type testResult struct {
-	err    error
-	result string
-}
-
 func serverWrapper(ready chan error, storer PwStorer, in io.Reader, out io.Writer) {
 	err := ProcessPwRequestServer(in, out, storer)
 	ready <- err
