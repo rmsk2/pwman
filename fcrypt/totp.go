@@ -47,7 +47,7 @@ func ExtractTotpUrl(data string) (string, error) {
 	numUrls := strings.Count(strings.ToLower(data), "otpauth://totp/")
 
 	if numUrls > 1 {
-		return "", fmt.Errorf("Several potential otpauth://totp/ URLs found")
+		return "", fmt.Errorf("several potential otpauth://totp/ URLs found")
 	}
 
 	// The case of zero found URLs is handled below
@@ -56,11 +56,11 @@ func ExtractTotpUrl(data string) (string, error) {
 
 	foundMatches := regEx.FindAllString(data, -1)
 	if len(foundMatches) == 0 {
-		return "", fmt.Errorf("No otpauth://totp/ URL found")
+		return "", fmt.Errorf("no otpauth://totp/ URL found")
 	}
 
 	if len(foundMatches) > 1 {
-		return "", fmt.Errorf("Several otpauth://totp/ URLs found")
+		return "", fmt.Errorf("several otpauth://totp/ URLs found")
 	}
 
 	return foundMatches[0], nil
@@ -69,7 +69,7 @@ func ExtractTotpUrl(data string) (string, error) {
 func NewFromTotpUrl(text string) (*TotpParams, error) {
 	rawURL, err := ExtractTotpUrl(text)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to construct TOTP generator: %v", err)
+		return nil, fmt.Errorf("unable to construct TOTP generator: %v", err)
 	}
 
 	u, err := url.Parse(rawURL)
