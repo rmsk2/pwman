@@ -265,7 +265,7 @@ func (c *CmdContext) PwdCommand(args []string) error {
 // ResetCommand deletes the password from pwserv
 func (c *CmdContext) ResetCommand(args []string) error {
 	decFlags := flag.NewFlagSet("pwman rst", flag.ContinueOnError)
-	inFile := decFlags.String("i", "", "File holding password safe")
+	inFile := decFlags.String("i", "", "File holding password safe. Use -i \"*\" to delete all cached passwords")
 
 	err := decFlags.Parse(args)
 	if err != nil {
