@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"hash"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 )
 
 type AlgoId uint
@@ -42,24 +42,34 @@ func NewTotpParams() *TotpParams {
 	}
 }
 
+func ExtractTotpUrl(data string) (string, error) {
+	// make sure two consecutive URLs without white space between them are detected
+	numUrls := strings.Count(strings.ToLower(data), "otpauth://totp/")
+
+	if numUrls > 1 {
+		return "", fmt.Errorf("Several potential otpauth://totp/ URLs found")
+	}
+
+	// The case of zero found URLs is handled below
+
+	regEx := regexp.MustCompile(`(?i)otpauth://totp/\S+`)
+
+	foundMatches := regEx.FindAllString(data, -1)
+	if len(foundMatches) == 0 {
+		return "", fmt.Errorf("No otpauth://totp/ URL found")
+	}
+
+	if len(foundMatches) > 1 {
+		return "", fmt.Errorf("Several otpauth://totp/ URLs found")
+	}
+
+	return foundMatches[0], nil
+}
+
 func NewFromTotpUrl(text string) (*TotpParams, error) {
-	const prefix = "otpauth://totp/"
-
-	first := strings.Index(text, prefix)
-	if first == -1 {
-		return nil, fmt.Errorf("no TOTP URL found")
-	}
-
-	if strings.Contains(text[first+len(prefix):], prefix) {
-		return nil, fmt.Errorf("multiple TOTP URLs found")
-	}
-
-	end := strings.IndexFunc(text[first:], unicode.IsSpace)
-	var rawURL string
-	if end == -1 {
-		rawURL = text[first:]
-	} else {
-		rawURL = text[first : first+end]
+	rawURL, err := ExtractTotpUrl(text)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct TOTP generator: %v", err)
 	}
 
 	u, err := url.Parse(rawURL)

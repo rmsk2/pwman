@@ -1,4 +1,4 @@
-package main
+package fcrypt
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 func TestQrRegEx(t *testing.T) {
 	url := "otpauth://totp/diesisteintest"
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestQrRegEx(t *testing.T) {
 func TestQrRegExUppercase(t *testing.T) {
 	url := "OTPAUTH://TOTP/diesisteintest"
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestQrRegExUppercase(t *testing.T) {
 func TestQrRegExEmpty(t *testing.T) {
 	url := ""
 
-	_, err := extractTotpUrl(url)
+	_, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Fatal("Empty string is no otpauth URL")
 	}
@@ -42,7 +42,7 @@ func TestQrRegExEmpty(t *testing.T) {
 func TestQrRegExNoUrl(t *testing.T) {
 	url := "In diesem Text gibt es keine passende otpauth URL\nAuch nicht in der zweiten Zeile\n"
 
-	_, err := extractTotpUrl(url)
+	_, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Fatal("Empty string is no otpauth URL")
 	}
@@ -51,7 +51,7 @@ func TestQrRegExNoUrl(t *testing.T) {
 func TestQrRegExConcatenated(t *testing.T) {
 	url := "otpauth://totp/diesisteintestotpauth://totp/diesisteintest"
 
-	_, err := extractTotpUrl(url)
+	_, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Fatal("Two unseparable are not detected")
 	}
@@ -60,7 +60,7 @@ func TestQrRegExConcatenated(t *testing.T) {
 func TestQrRegExWhiteSpaceOnly(t *testing.T) {
 	url := "              \n                    "
 
-	_, err := extractTotpUrl(url)
+	_, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Fatal("Whitespace string is no otpauth URL")
 	}
@@ -69,7 +69,7 @@ func TestQrRegExWhiteSpaceOnly(t *testing.T) {
 func TestQrRegExEmbedded(t *testing.T) {
 	url := `Dies ist egal otpauth://totp/account%20test?secret=AAAAAAAAAAAAAAAA&digits=6&period=30 und danach kommt auch noch was`
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestQrRegExEmbedded(t *testing.T) {
 func TestQrRegExEmbeddedMultiLine(t *testing.T) {
 	url := "Dies ist egal\n prefix otpauth://totp/account%20test?secret=AAAAAAAAAAAAAAAA&digits=6&period=30\nund danach kommt auch noch was"
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestQrRegExEmbeddedMultiLine(t *testing.T) {
 func TestQrRegExEmbeddedMultiLineCRLF(t *testing.T) {
 	url := "Dies ist egal\r\n prefix otpauth://totp/account%20test?secret=AAAAAAAAAAAAAAAA&digits=6&period=30\r\nund danach kommt auch noch was"
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestQrRegExEmbeddedMultiLineCRLF(t *testing.T) {
 func TestQrRegExMultipleSameLine(t *testing.T) {
 	url := "otpauth://totp/diesisteintest otpauth://totp/diesisteintest2"
 
-	res, err := extractTotpUrl(url)
+	res, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Log(res)
 		t.Fatal("Multiple otpauth URLs not detected")
@@ -120,7 +120,7 @@ func TestQrRegExMultipleSameLine(t *testing.T) {
 func TestQrRegExMultipleDifferentLine(t *testing.T) {
 	url := "otpauth://totp/diesisteintest\notpauth://totp/diesisteintest2"
 
-	_, err := extractTotpUrl(url)
+	_, err := ExtractTotpUrl(url)
 	if err == nil {
 		t.Fatal("Multiple otpauth URLs not detected")
 	}

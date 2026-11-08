@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const VersionInfo = "1.4.7"
+const VersionInfo = "1.4.8"
 const defaulPbKdf = fcrypt.PbKdfArgon2id
 
 type ManagerCreator func(string) fcrypt.GjotsManager
