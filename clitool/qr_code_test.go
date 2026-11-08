@@ -39,6 +39,15 @@ func TestQrRegExEmpty(t *testing.T) {
 	}
 }
 
+func TestQrRegExNoUrl(t *testing.T) {
+	url := "In diesem Text gibt es keine passende otpauth URL\nAuch nicht in der zweiten Zeile\n"
+
+	_, err := extractQrCode(url)
+	if err == nil {
+		t.Fatal("Empty string is no otpauth URL")
+	}
+}
+
 func TestQrRegExConcatenated(t *testing.T) {
 	url := "otpauth://diesisteintestotpauth://diesisteintest"
 

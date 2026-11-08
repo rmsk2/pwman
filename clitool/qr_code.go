@@ -61,11 +61,14 @@ func startViewer(viewer string, outFile string) error {
 }
 
 func extractQrCode(data string) (string, error) {
+	// make sure two consecutive URLs without white space between them are detected
 	numUrls := strings.Count(strings.ToLower(data), "otpauth://")
 
 	if numUrls > 1 {
 		return "", fmt.Errorf("Several potential otpauth:// URLs found")
 	}
+
+	// The case of zero found URLs is handled below
 
 	regEx := regexp.MustCompile(`(?i)otpauth://\S+`)
 
