@@ -13,6 +13,8 @@ cd ..\
 echo Building clitool
 cd clitool
 go build
+del addr_helper.go > nul 2>&1
+..\builder\builder.exe addr_helper.go
 
 cd ..\pwserv
 echo Building pwsrv

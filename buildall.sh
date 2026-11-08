@@ -10,7 +10,9 @@ cd ../
 
 echo Building clitool
 cd clitool
-go build 
+go build
+rm addr_helper.go
+../builder/builder addr_helper.go
 
 echo Building pwserv
 cd ../pwserv

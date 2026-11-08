@@ -13,3 +13,6 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Make it clear that addr_helper.go should never be commmitted to the repo
+clitool/addr_helper.go

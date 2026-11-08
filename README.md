@@ -106,4 +106,9 @@ containing a QR-code.
 # Building
 
 There are build scripts `buildall.sh` (for Linux and MacOS) and `buildall.bat` (for Windows) which allow building the two binaries mentioned 
-above. 
+above. These scripts automatically generate and after the build also regenerate the file `clitool/addr_helper.go`. This file contains the obfuscation
+value used to make guessing the cache address not trivial. So regenerating it after the build hides the concrete value used in the previously built
+binary from a potential attacker (at least in the form of source code). Unfortunately simply deleting the file confuses my IDE (VS code) as it is missig
+the corresponding variable and says so in the UI. In order to make clear that `clitool/addr_helper.go` contains a somewhat sensitive and ephemeral value
+which should not be committed to the repo, it has been added to `.gitignore`.
+
