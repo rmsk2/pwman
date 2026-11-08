@@ -96,7 +96,8 @@ each second. You can suppress recalculation by adding the option `-oneshot`.
 
 The `qrc` command allows to represent the contents of an entry as a QR code. For this pupose a new file is created which is subsequently
 displayed using the viewer program specified in the `RUSTPWMAN_VIEWER` environment variable. You probably want to delete the file after you have
-scanned the QR code.
+scanned the QR code. If you use the `-extract` option `pwman` attempts to isolate an `otpauth://` URL from an entry's text. If none is found
+an error is returned. If you do not use the `-extract` option the whole text of the entry is represented in the QR code.
 
 In addition the Python script `totp.py` in this repo can be used to determine the contents of a QR code stored in an image file and to print that
 contents to stdout. For reasons of symmetry it also works the other way round, i.e. data read from stdin can be represented as an image file
