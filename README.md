@@ -100,8 +100,7 @@ scanned the QR code. If you use the `-extract` option `pwman` attempts to isolat
 an error is returned. If you do not use the `-extract` option the whole text of the entry is represented in the QR code.
 
 In addition the Python script `totp.py` in this repo can be used to determine the contents of a QR code stored in an image file and to print that
-contents to stdout. For reasons of symmetry it also works the other way round, i.e. data read from stdin can be represented as an image file
-containing a QR-code.
+contents to stdout.
 
 # Building
 
